@@ -52,6 +52,7 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab, onOpenContact }) =
     { label: 'Process', tab: 'work', sectionId: 'process-section' },
     { label: 'Testimonials', tab: 'about', sectionId: 'testimonials-section' },
     { label: 'FAQ', tab: 'careers', sectionId: 'faq-section' },
+    { label: 'Careers', tab: 'careers', sectionId: 'careers-section' },
   ];
 
   const handleNavClick = (tab: ActiveTab, sectionId?: string, label = 'Home') => {

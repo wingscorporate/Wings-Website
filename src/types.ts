@@ -30,6 +30,7 @@ export interface CareerPosition {
   id: string;
   title: string;
   department: string;
+  salaryRange: string;
   location: string;
   type: string;
   experience: string;

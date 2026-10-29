@@ -17,6 +17,7 @@ import { TeamGallerySection } from './components/TeamGallerySection';
 import { ArticlesSection } from './components/ArticlesSection';
 import { PricingSection } from './components/PricingSection';
 import { FaqSection } from './components/FaqSection';
+import { CareersSection } from './components/CareersSection';
 import { FinalCtaSection } from './components/FinalCtaSection';
 import { Footer } from './components/Footer';
 import { CursorSpotlight } from './components/CursorSpotlight';
@@ -25,6 +26,7 @@ const StrategyCallModal = lazy(() => import('./components/StrategyCallModal').th
 const ServiceDetailDrawer = lazy(() => import('./components/ServiceDetailDrawer').then((module) => ({ default: module.ServiceDetailDrawer })));
 const LegalModal = lazy(() => import('./components/LegalModal').then((module) => ({ default: module.LegalModal })));
 const CaseStudyPage = lazy(() => import('./components/CaseStudyPage').then((module) => ({ default: module.CaseStudyPage })));
+const CareersApplicationModal = lazy(() => import('./components/CareersApplicationModal').then((module) => ({ default: module.CareersApplicationModal })));
 import { ArrowRight } from 'lucide-react';
 import { LoadingBoundary } from './components/LoadingBoundary';
 
@@ -42,6 +44,7 @@ export default function App() {
   const [isStrategyCallOpen, setIsStrategyCallOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedCaseStudy, setSelectedCaseStudy] = useState<CaseStudy | null>(null);
+  const [selectedCareer, setSelectedCareer] = useState<CareerPosition | null>(null);
   const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | null>(null);
   const [contactPreselectedService, setContactPreselectedService] = useState<string | undefined>(undefined);
 
@@ -161,7 +164,10 @@ export default function App() {
           {/* 16. FAQ Section */}
           <FaqSection onOpenContact={() => handleOpenContact('FAQ Inquiry')} />
 
-          {/* 17. Final High-Converting Call-to-Action */}
+          {/* 17. Careers & Open Roles */}
+          <CareersSection onApplyJob={setSelectedCareer} />
+
+          {/* 18. Final High-Converting Call-to-Action */}
           <FinalCtaSection
             onOpenContact={() => handleOpenContact('Strategy Call Request')}
             onExploreWork={handleExploreWork}
@@ -230,6 +236,14 @@ export default function App() {
         type={legalModalType}
         onClose={() => setLegalModalType(null)}
       /></Suspense></LoadingBoundary>
+
+      <LoadingBoundary><Suspense fallback={null}>
+        <CareersApplicationModal
+          isOpen={Boolean(selectedCareer)}
+          job={selectedCareer}
+          onClose={() => setSelectedCareer(null)}
+        />
+      </Suspense></LoadingBoundary>
 
     </div>
   );

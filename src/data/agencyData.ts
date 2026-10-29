@@ -52,6 +52,36 @@ export const AGENCY_STATS = [
     label: 'Low CPL Achieved',
     description: 'Qualified B2B & High-Intent Leads',
     growth: 'High Intent'
+  },
+  {
+    id: 'business-development-manager',
+    title: 'Business Development Manager',
+    department: 'Business Development',
+    salaryRange: '₹1.5 LPA – ₹3.5 LPA',
+    location: 'Kolkata, WB (Hybrid / Remote)',
+    type: 'Full-Time',
+    experience: '2–5 Years',
+    description: 'Lead revenue conversations, shape commercial proposals, and build a high-quality pipeline of e-commerce growth opportunities.',
+    requirements: [
+      'Proven B2B business development or agency sales experience',
+      'Confidence presenting strategy, proposals, and commercial outcomes',
+      'Experience coaching outreach and managing monthly sales targets'
+    ]
+  },
+  {
+    id: 'performance-marketer',
+    title: 'Performance Marketer',
+    department: 'Performance Media',
+    salaryRange: '₹1.2 LPA – ₹3.5 LPA',
+    location: 'Kolkata, WB (Hybrid / Remote)',
+    type: 'Full-Time',
+    experience: '0–3 Years',
+    description: 'Plan, launch, and optimize paid media campaigns that grow D2C brands through profitable acquisition and measurable performance.',
+    requirements: [
+      'Hands-on experience with Meta Ads and Google Ads',
+      'Working knowledge of GA4, pixels, GTM, and conversion tracking',
+      'Analytical approach to creative testing, campaign optimization, and ROAS'
+    ]
   }
 ];
 
@@ -661,13 +691,14 @@ export const DAILYHUNT_FEATURE = {
 
 export const CAREER_POSITIONS: CareerPosition[] = [
   {
-    id: 'perf-marketer',
-    title: 'Senior Performance Marketing Specialist',
-    department: 'Performance Media',
+    id: 'web-developer',
+    title: 'Web Developer',
+    department: 'Technology',
+    salaryRange: '₹1.2 LPA – ₹3 LPA',
     location: 'Kolkata, WB (Hybrid / Remote)',
     type: 'Full-Time',
-    experience: '3+ Years',
-    description: 'Lead million-rupee ad spend budgets across Meta Ads and Google Ads with a focus on high ROAS, creative scaling, and advanced attribution.',
+    experience: '0–3 Years',
+    description: 'Build fast, conversion-focused websites and storefront experiences for ambitious e-commerce brands.',
     requirements: [
       'Proven track record managing ₹5M+ monthly ad spend with 4x+ ROAS',
       'Mastery over Meta Advantage+, CAPI, Google Performance Max & Analytics 4',
@@ -675,13 +706,14 @@ export const CAREER_POSITIONS: CareerPosition[] = [
     ]
   },
   {
-    id: 'ecom-cro',
-    title: 'E-Commerce Growth Manager & CRO Lead',
-    department: 'E-Commerce Strategy',
+    id: 'business-development-associate',
+    title: 'Business Development Associate',
+    department: 'Business Development',
+    salaryRange: '₹1.5 LPA – ₹3.5 LPA',
     location: 'Kolkata, WB (On-Site / Hybrid)',
     type: 'Full-Time',
-    experience: '4+ Years',
-    description: 'Own the revenue growth blueprint for top-tier D2C brands. Manage storefront optimization, checkout flows, AOV strategies, and customer retention.',
+    experience: '0–2 Years',
+    description: 'Create meaningful first conversations with e-commerce brands and help turn qualified opportunities into growth partnerships.',
     requirements: [
       'Expertise in Shopify Plus ecosystem, Klaviyo, and UX analytics tools (Hotjar, Microsoft Clarity)',
       'Strong analytical mindset with ability to dissect funnels and identify revenue drop-offs',
@@ -689,13 +721,14 @@ export const CAREER_POSITIONS: CareerPosition[] = [
     ]
   },
   {
-    id: 'creative-strategist',
-    title: 'Creative Strategist / Short-Form Video Producer',
-    department: 'Creative & Content',
+    id: 'business-development-executive',
+    title: 'Business Development Executive',
+    department: 'Business Development',
+    salaryRange: '₹1.5 LPA – ₹3.5 LPA',
     location: 'Kolkata, WB',
     type: 'Full-Time',
-    experience: '2+ Years',
-    description: 'Script, direct, and produce viral direct-response video ad concepts, Instagram Reels, and high-converting ad hooks.',
+    experience: '1–3 Years',
+    description: 'Own the outbound and inbound sales cycle for performance marketing and e-commerce growth services.',
     requirements: [
       'Deep understanding of social media psychology, viral hooks, and ad psychology',
       'Proficiency in Premiere Pro / CapCut / After Effects for high-velocity ad testing',

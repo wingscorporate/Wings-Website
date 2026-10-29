@@ -8,6 +8,8 @@ interface CareersSectionProps {
 }
 
 export const CareersSection: React.FC<CareersSectionProps> = ({ onApplyJob }) => {
+  const [expandedJob, setExpandedJob] = useState<string | null>(null);
+
   return (
     <section id="careers-section" className="py-28 bg-[#080808] relative overflow-hidden border-t border-white/5">
       {/* Background Lighting */}
@@ -34,7 +36,10 @@ export const CareersSection: React.FC<CareersSectionProps> = ({ onApplyJob }) =>
 
         {/* Job Openings Grid */}
         <div className="space-y-6">
-          {CAREER_POSITIONS.map((job) => (
+          {CAREER_POSITIONS.map((job) => {
+            const isExpanded = expandedJob === job.id;
+
+            return (
             <div
               key={job.id}
               className="p-8 rounded-2xl bg-[#0D0D14] border border-white/10 hover:border-purple-500/40 transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-8 group"
@@ -50,6 +55,7 @@ export const CareersSection: React.FC<CareersSectionProps> = ({ onApplyJob }) =>
                   <span className="text-xs text-neutral-400 flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5 text-purple-400" /> {job.type} ({job.experience})
                   </span>
+                  <span className="text-xs font-semibold text-[#7EA1FF]">{job.salaryRange}</span>
                 </div>
 
                 <h3 className="font-display font-bold text-2xl text-white group-hover:text-purple-300 transition-colors">
@@ -61,7 +67,7 @@ export const CareersSection: React.FC<CareersSectionProps> = ({ onApplyJob }) =>
                 </p>
 
                 <div className="pt-2 space-y-1">
-                  {job.requirements.slice(0, 2).map((req, idx) => (
+                  {job.requirements.slice(0, isExpanded ? job.requirements.length : 2).map((req, idx) => (
                     <div key={idx} className="flex items-center gap-2 text-xs text-neutral-400">
                       <CheckCircle2 className="w-3.5 h-3.5 text-purple-400 shrink-0" />
                       <span>{req}</span>
@@ -70,7 +76,15 @@ export const CareersSection: React.FC<CareersSectionProps> = ({ onApplyJob }) =>
                 </div>
               </div>
 
-              <div className="shrink-0">
+              <div className="shrink-0 flex flex-col sm:flex-row gap-3">
+                <button
+                  type="button"
+                  onClick={() => setExpandedJob(isExpanded ? null : job.id)}
+                  aria-expanded={isExpanded}
+                  className="w-full sm:w-auto px-6 py-3.5 rounded-full border border-white/20 hover:border-purple-500/60 hover:bg-white/5 text-white font-display font-semibold text-xs uppercase tracking-wider transition-all cursor-pointer"
+                >
+                  {isExpanded ? 'Hide Details' : 'View Details'}
+                </button>
                 <button
                   onClick={() => onApplyJob(job)}
                   className="w-full sm:w-auto px-6 py-3.5 rounded-full bg-neutral-900 border border-white/20 hover:border-purple-500 hover:bg-purple-600 text-white font-display font-semibold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
@@ -80,7 +94,8 @@ export const CareersSection: React.FC<CareersSectionProps> = ({ onApplyJob }) =>
                 </button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
       </div>
