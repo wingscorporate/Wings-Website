@@ -1,0 +1,169 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-sans: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #050816;
+    color: #FFFFFF;
+    color-scheme: dark;
+  }
+
+  /* Input and date picker dark mode contrast fixes */
+  input, select, textarea {
+    color-scheme: dark;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.9);
+    cursor: pointer;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+  }
+}
+
+/* Wings Marketing Premium Theme Classes */
+.bg-wings-dark {
+  background-color: #050816;
+}
+
+.bg-wings-card {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.bg-wings-navy {
+  background-color: #0A1024;
+}
+
+/* Glassmorphism & Custom Glows */
+.glass-panel {
+  background: rgba(10, 16, 36, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.glass-panel-hover {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-panel-hover:hover {
+  background: rgba(15, 23, 50, 0.85);
+  border-color: rgba(79, 124, 255, 0.4);
+  box-shadow: 0 0 30px rgba(79, 124, 255, 0.2), inset 0 0 15px rgba(139, 92, 246, 0.1);
+  transform: translateY(-4px);
+}
+
+.glow-blue {
+  box-shadow: 0 0 40px -10px rgba(79, 124, 255, 0.4);
+}
+
+.glow-purple {
+  box-shadow: 0 0 40px -10px rgba(139, 92, 246, 0.4);
+}
+
+.glow-blue-lg {
+  box-shadow: 0 0 80px -20px rgba(79, 124, 255, 0.5);
+}
+
+.gradient-text-blue {
+  background: linear-gradient(135deg, #FFFFFF 0%, #AAB2C8 50%, #5B8CFF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gradient-text-electric {
+  background: linear-gradient(135deg, #5B8CFF 0%, #8B5CF6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gradient-border-electric {
+  border-image: linear-gradient(to right, rgba(79, 124, 255, 0.6), rgba(139, 92, 246, 0.6)) 1;
+}
+
+/* Background grid noise */
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050816;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1A2342;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4F7CFF;
+}
+
+/* Marquee Animation */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marquee-reverse {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 35s linear infinite;
+}
+
+.animate-marquee-reverse {
+  display: flex;
+  width: max-content;
+  animation: marquee-reverse 38s linear infinite;
+}
+
+.animate-marquee:hover,
+.animate-marquee-reverse:hover {
+  animation-play-state: paused;
+}
+
+/* Subtle Floating Animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(1deg); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.08); }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 4s ease-in-out infinite;
+}
+
+
+
+/* Slide progress bar used by the Ads Manager / Shopify screenshot slider */
+@keyframes wingsSlideProgress {
+  from { width: 0%; }
+  to { width: 100%; }
+}
