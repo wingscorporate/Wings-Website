@@ -29,6 +29,20 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab, onOpenContact }) =
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileMenuOpen(false);
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [mobileMenuOpen]);
+
   const navItems: { label: string; tab: ActiveTab; sectionId?: string }[] = [
     { label: 'Home', tab: 'home', sectionId: '' },
     { label: 'Services', tab: 'services', sectionId: 'services-section' },
@@ -63,7 +77,7 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab, onOpenContact }) =
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-[60] transition-all duration-300 ${
           isScrolled
             ? 'bg-[#080808]/85 backdrop-blur-md border-b border-white/10 py-4 shadow-2xl'
             : 'bg-transparent py-6'
@@ -117,9 +131,12 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab, onOpenContact }) =
 
           {/* Mobile/Tablet Menu Trigger */}
           <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            type="button"
+            onClick={() => setMobileMenuOpen((open) => !open)}
             className="lg:hidden p-2.5 rounded-xl bg-neutral-900 border border-white/10 text-white hover:bg-neutral-800 transition-colors cursor-pointer shrink-0"
             aria-label="Toggle Mobile/Tablet Menu"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-navigation"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -128,7 +145,7 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab, onOpenContact }) =
 
       {/* Fullscreen Mobile & Tablet Navigation Menu */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-40 bg-[#050816]/98 backdrop-blur-2xl lg:hidden flex flex-col justify-between p-6 sm:p-10 pt-24 animate-in fade-in duration-200 overflow-y-auto">
+        <div id="mobile-navigation" className="fixed inset-0 z-50 bg-[#050816]/98 backdrop-blur-2xl lg:hidden flex flex-col justify-between p-6 sm:p-10 pt-24 animate-in fade-in duration-200 overflow-y-auto overscroll-contain">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] tracking-widest uppercase text-[#5B8CFF] font-bold mb-2">
               Navigation Menu

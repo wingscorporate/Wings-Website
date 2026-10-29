@@ -26,7 +26,7 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({ study, onClose, 
 
         {/* Hero Image */}
         <div className="relative h-48 sm:h-64 w-full rounded-2xl overflow-hidden">
-          <img src={study.image} alt={study.title} className="w-full h-full object-cover" />
+          <img src={study.image} alt={study.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0A1024] via-transparent to-transparent" />
           <div className="absolute top-4 left-4 flex flex-wrap gap-2">
             <span className="px-3 py-1 rounded-full bg-black/80 text-white text-[10px] font-bold uppercase tracking-wider border border-white/10">

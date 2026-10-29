@@ -118,6 +118,7 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({
             <img
               src={src}
               alt={alt}
+              decoding="async"
               onClick={(event) => event.stopPropagation()}
               onError={() => setHasError(true)}
               className="max-h-[calc(100dvh-8rem)] max-w-[calc(100vw-5rem)] rounded-lg object-contain sm:max-h-[calc(100dvh-7rem)] sm:max-w-[calc(100vw-9rem)]"

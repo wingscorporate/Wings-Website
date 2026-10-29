@@ -14,6 +14,9 @@ export const DailyhuntSection: React.FC = () => {
             <img
               src="https://instagram.fccu2-2.fna.fbcdn.net/v/t51.2885-19/447387667_1863147904148754_1014227800874085732_n.jpg?efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fccu2-2.fna.fbcdn.net&_nc_cat=106&_nc_oc=Q6cZ2gHssIcEbTFW8xlSuyENO2SNS3Fk56Eep501WPpoc_4jimydePYYWu9MMk4at17Gd_5tNi6LKGhQv_7YC07sP9hH&_nc_ohc=cxWM2EvnlywQ7kNvwEpKVUf&_nc_gid=Xsv7yItAuX0X7QkDzRa9jw&edm=APoiHPcBAAAA&ccb=7-5&oh=00_AQHGQHbozd4aBaa9FI8AH9P2WguVr_r6zZqpWY4gRf8lmg&oe=6A7E4F45&_nc_sid=22de04"
               alt="Dailyhunt Article Background"
+              loading="lazy"
+              decoding="async"
+              fetchPriority="low"
               referrerPolicy="no-referrer"
               onError={(e) => {
                 (e.currentTarget as HTMLImageElement).style.display = 'none';

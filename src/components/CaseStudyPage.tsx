@@ -93,6 +93,7 @@ export const CaseStudyPage: React.FC<CaseStudyPageProps> = ({
             <img
               src={study.image}
               alt={study.title}
+              decoding="async"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0A1024] via-[#0A1024]/30 to-transparent" />
@@ -266,6 +267,8 @@ export const CaseStudyPage: React.FC<CaseStudyPageProps> = ({
                     <img
                       src={rel.image}
                       alt={rel.title}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80 group-hover:opacity-100"
                     />
                     <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/80 text-white text-[10px] font-semibold uppercase">

@@ -33,7 +33,8 @@ const InboxSlideButton: React.FC<{
         <img
           src={slide.src}
           alt={`Inbox screenshot ${slide.index}`}
-          loading="eager"
+          loading="lazy"
+          decoding="async"
           onLoad={() => setIsLoading(false)}
           onError={() => {
             setIsLoading(false);
