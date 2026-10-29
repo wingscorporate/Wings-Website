@@ -95,7 +95,7 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab, onOpenContact, onO
                 <button
                   onClick={() => {
                     setActiveTab('careers');
-                    document.getElementById('careers-section')?.scrollIntoView({ behavior: 'smooth' });
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   className="hover:text-purple-400 transition-colors cursor-pointer flex items-center gap-1.5"
                 >
