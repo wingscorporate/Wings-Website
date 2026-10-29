@@ -12,9 +12,59 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      html, body { margin: 0; background: #050816; color: #f5f5f5; }
+      html { scrollbar-gutter: stable; }
+      html.app-loading, html.app-loading body { overflow: hidden; }
+      #boot-screen { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; background: #050816; opacity: 1; transition: opacity .55s ease; font-family: Arial, sans-serif; }
+      #boot-screen.boot-exit { opacity: 0; pointer-events: none; }
+      .boot-brand { text-align: center; padding: 24px; }
+      .boot-mark { color: #fff; font-size: clamp(32px, 7vw, 56px); font-weight: 800; letter-spacing: .24em; text-indent: .24em; text-shadow: 0 0 34px rgba(91,140,255,.55); animation: boot-glow 2.4s ease-in-out infinite; }
+      .boot-sub { color: #aab2c8; letter-spacing: .35em; font-size: 10px; margin-top: 8px; }
+      #boot-progress { display: block; width: min(180px, 55vw); height: 3px; margin: 32px auto 16px; border: 0; border-radius: 4px; overflow: hidden; background: #1a2342; accent-color: #5b8cff; }
+      #boot-progress::-webkit-progress-bar { background: #1a2342; }
+      #boot-progress::-webkit-progress-value { background: linear-gradient(90deg,#4f7cff,#8b5cf6); transition: width .2s; }
+      #boot-progress::-moz-progress-bar { background: #5b8cff; }
+      #boot-status { font-size: 12px; color: #aab2c8; }
+      #boot-retry { color: #8fb2ff; display: inline-block; margin-top: 16px; }
+      .app-loading #root { opacity: 0; pointer-events: none; }
+      .app-loading #root * { animation-play-state: paused !important; }
+      #root { transition: opacity .55s ease; }
+      @keyframes boot-glow { 50% { opacity: .7; transform: translateY(-3px); } }
+      @media (prefers-reduced-motion: reduce) { #boot-screen, #root { transition: none; } .boot-mark { animation: none; } }
+    </style>
   </head>
   <body class="bg-[#050505] text-[#F5F5F5] antialiased selection:bg-purple-500/30 selection:text-purple-200 overflow-x-hidden font-sans">
-    <div id="root"></div>
+    <div id="boot-screen" role="status" aria-live="polite" aria-label="Loading WINGS Marketing">
+      <div class="boot-brand">
+        <div class="boot-mark">WINGS</div>
+        <div class="boot-sub">MARKETING</div>
+        <progress id="boot-progress" aria-label="Critical resource readiness"></progress>
+        <div id="boot-status">Preparing your experience</div>
+        <a id="boot-retry" href="" hidden>Reload website</a>
+      </div>
+    </div>
+    <div id="root" aria-busy="true"></div>
+    <script>
+      (() => {
+        const html = document.documentElement, root = document.getElementById('root'), screen = document.getElementById('boot-screen');
+        html.classList.add('app-loading'); root.inert = true;
+        let finished = false;
+        const reveal = () => {
+          if (finished || !root.childElementCount) return;
+          finished = true; clearTimeout(watchdog); window.removeEventListener('wings:ready', reveal);
+          html.classList.remove('app-loading'); root.inert = false; root.removeAttribute('aria-busy'); screen.classList.add('boot-exit');
+          performance.mark?.('wings-reveal'); window.dispatchEvent(new Event('wings:revealed'));
+          setTimeout(() => screen.remove(), matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 600);
+        };
+        window.addEventListener('wings:ready', reveal);
+        const watchdog = setTimeout(() => {
+          if (root.childElementCount) reveal();
+          else { html.classList.remove('app-loading'); root.inert = false; document.getElementById('boot-status').textContent = 'The website could not start. Please reload to try again.'; const retry = document.getElementById('boot-retry'); retry.hidden = false; retry.href = location.href; }
+        }, 12000);
+      })();
+    </script>
+    <noscript><style>#boot-screen{display:none}</style><p style="padding:24px">Enable JavaScript to explore WINGS Marketing. <a href="https://wa.me/919230554211">Contact us on WhatsApp</a>.</p></noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

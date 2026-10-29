@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   BarChart3,
   ShoppingBag,
@@ -15,7 +15,8 @@ import {
   Pause,
   Image as ImageIcon
 } from 'lucide-react';
-import { AD_ACCOUNT_SLIDES, SHOPIFY_SLIDES, ShotSlide } from '../images';
+import { AD_ACCOUNT_SLIDES, SHOPIFY_SLIDES, ShotSlide, responsiveImage } from '../images';
+import { useViewportActivity } from '../hooks/useViewportActivity';
 
 interface PerformanceProofSectionProps {
   onOpenContact: () => void;
@@ -38,6 +39,8 @@ const Slide: React.FC<{
       {slide.src ? (
         <img
           src={slide.src}
+          {...responsiveImage(slide.src)}
+          decoding="async"
           alt={`${isShopify ? 'Shopify' : 'Ads Manager'} screenshot ${index + 1} of ${total}`}
           loading="lazy"
           onClick={onExpand}
@@ -97,6 +100,8 @@ const Slide: React.FC<{
 };
 
 export const PerformanceProofSection: React.FC<PerformanceProofSectionProps> = ({ onOpenContact }) => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const isActive = useViewportActivity(sectionRef);
   const [activeTab, setActiveTab] = useState<'ad-manager' | 'shopify'>('ad-manager');
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -114,12 +119,12 @@ export const PerformanceProofSection: React.FC<PerformanceProofSectionProps> = (
 
   // Auto-advance every 5 seconds (only when there is more than one slide)
   useEffect(() => {
-    if (paused || lightbox || total <= 1) return;
+    if (!isActive || paused || lightbox || total <= 1) return;
     const id = window.setInterval(() => {
       setIndex((prev) => (prev + 1) % total);
     }, AUTOPLAY_MS);
     return () => window.clearInterval(id);
-  }, [paused, lightbox, total]);
+  }, [isActive, paused, lightbox, total]);
 
   // Keyboard control inside the lightbox
   useEffect(() => {
@@ -140,7 +145,7 @@ export const PerformanceProofSection: React.FC<PerformanceProofSectionProps> = (
   };
 
   return (
-    <section id="performance-proof" className="py-16 sm:py-24 bg-[#050816] relative overflow-hidden border-t border-white/10 select-none">
+    <section ref={sectionRef} id="performance-proof" className="py-16 sm:py-24 bg-[#050816] relative overflow-hidden border-t border-white/10 select-none">
       <div className="absolute top-1/3 left-1/4 w-[600px] h-[400px] bg-[#4F7CFF]/10 rounded-full blur-[150px] pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[#8B5CF6]/10 rounded-full blur-[140px] pointer-events-none" />
 

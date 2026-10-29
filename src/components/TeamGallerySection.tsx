@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Camera, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
-import { TEAM_PHOTOS, TeamPhoto } from '../images';
+import { TEAM_PHOTOS, TeamPhoto, responsiveImage } from '../images';
 import { ImageLightbox } from './ImageLightbox';
 
 
@@ -46,8 +46,10 @@ export const TeamGallerySection: React.FC = () => {
             >
               <img
                 src={activePhoto.src}
+                {...responsiveImage(activePhoto.src)}
                 alt={`WINGS team photo ${activePhoto.index}`}
-                loading="eager"
+                loading="lazy"
+                decoding="async"
                 className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-[1.01]"
               />
               <span className="absolute right-3 top-3 rounded-md border border-white/20 bg-black/65 p-2 text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">

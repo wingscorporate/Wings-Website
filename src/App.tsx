@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { lazy, Suspense, useState } from 'react';
 import { ActiveTab, Service, CaseStudy, CareerPosition } from './types';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
@@ -20,12 +20,15 @@ import { FaqSection } from './components/FaqSection';
 import { FinalCtaSection } from './components/FinalCtaSection';
 import { Footer } from './components/Footer';
 import { CursorSpotlight } from './components/CursorSpotlight';
-import { ContactModal } from './components/ContactModal';
-import { StrategyCallModal } from './components/StrategyCallModal';
-import { ServiceDetailDrawer } from './components/ServiceDetailDrawer';
-import { LegalModal } from './components/LegalModal';
-import { CaseStudyPage } from './components/CaseStudyPage';
-import { ArrowRight, Phone } from 'lucide-react';
+const ContactModal = lazy(() => import('./components/ContactModal').then((module) => ({ default: module.ContactModal })));
+const StrategyCallModal = lazy(() => import('./components/StrategyCallModal').then((module) => ({ default: module.StrategyCallModal })));
+const ServiceDetailDrawer = lazy(() => import('./components/ServiceDetailDrawer').then((module) => ({ default: module.ServiceDetailDrawer })));
+const LegalModal = lazy(() => import('./components/LegalModal').then((module) => ({ default: module.LegalModal })));
+const CaseStudyPage = lazy(() => import('./components/CaseStudyPage').then((module) => ({ default: module.CaseStudyPage })));
+import { ArrowRight } from 'lucide-react';
+import { LoadingBoundary } from './components/LoadingBoundary';
+
+const deferredFallback = <div role="status" className="fixed inset-0 z-[80] grid place-items-center bg-[#050816]/90 text-white">Loading content…</div>;
 
 const WhatsAppIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -95,12 +98,12 @@ export default function App() {
 
       {/* Main Content View */}
       {selectedCaseStudy ? (
-        <CaseStudyPage
+        <LoadingBoundary><Suspense fallback={deferredFallback}><CaseStudyPage
           study={selectedCaseStudy}
           onBack={handleBackToCaseStudies}
           onSelectCaseStudy={handleSelectCaseStudy}
           onOpenContact={(svc) => handleOpenContact(svc)}
-        />
+        /></Suspense></LoadingBoundary>
       ) : (
         <main className="relative">
           {/* 01. Hero Section */}
@@ -205,7 +208,7 @@ export default function App() {
       </div>
 
       {/* Modals & Drawers */}
-      <StrategyCallModal
+      <LoadingBoundary><Suspense fallback={null}><StrategyCallModal
         isOpen={isStrategyCallOpen}
         onClose={() => setIsStrategyCallOpen(false)}
         preselectedService={contactPreselectedService}
@@ -226,7 +229,7 @@ export default function App() {
       <LegalModal
         type={legalModalType}
         onClose={() => setLegalModalType(null)}
-      />
+      /></Suspense></LoadingBoundary>
 
     </div>
   );

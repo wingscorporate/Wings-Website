@@ -17,25 +17,25 @@
 
 // NOTE: import.meta.glob() requires a LITERAL string pattern — it cannot take a
 // variable or template literal, so each folder is declared explicitly here.
-const AD_ACCOUNT_GLOB = import.meta.glob<string>('./ad account ss/*.{jpg,jpeg,png,webp,avif}', {
+const AD_ACCOUNT_GLOB = import.meta.glob<string>('./optimized/ad account ss/*.webp', {
   eager: true,
   import: 'default',
   query: '?url'
 });
 
-const SHOPIFY_GLOB = import.meta.glob<string>('./shopify ss/*.{jpg,jpeg,png,webp,avif}', {
+const SHOPIFY_GLOB = import.meta.glob<string>('./optimized/shopify ss/*.webp', {
   eager: true,
   import: 'default',
   query: '?url'
 });
 
-const TEAM_GLOB = import.meta.glob<string>('./team photos/*.{jpg,jpeg,png,webp,avif}', {
+const TEAM_GLOB = import.meta.glob<string>('./optimized/team photos/*.webp', {
   eager: true,
   import: 'default',
   query: '?url'
 });
 
-const INBOX_GLOB = import.meta.glob<string>('./inbox ss/*.{jpg,jpeg,png,webp,avif}', {
+const INBOX_GLOB = import.meta.glob<string>('./optimized/inbox ss/*.webp', {
   eager: true,
   import: 'default',
   query: '?url'
@@ -78,7 +78,7 @@ const buildSlots = (entries: [string, string][], prefix: string, max: number): S
   });
 };
 
-const entriesOf = (glob: Record<string, string> | undefined) => (glob ? Object.entries(glob) : []);
+const entriesOf = (glob: Record<string, string> | undefined) => (glob ? Object.entries(glob).filter(([path]) => !path.endsWith('.small.webp')) : []);
 
 // ---- Ads Manager (Ad Account) screenshots: ads1..ads5 ----------------------
 export const AD_ACCOUNT_SLIDES: ShotSlide[] = buildSlots(
@@ -117,3 +117,18 @@ export const adAccountImages = AD_ACCOUNT_SLIDES.filter((s) => s.src).map((s) =>
 export const shopifyImages = SHOPIFY_SLIDES.filter((s) => s.src).map((s) => s.src as string);
 export const inboxImages = INBOX_SLIDES.filter((s) => s.src).map((s) => s.src as string);
 export const teamImages = TEAM_PHOTOS.filter((p) => p.src).map((p) => p.src as string);
+
+import metadata from './optimized/metadata.json';
+const SMALL_IMAGES = import.meta.glob<string>('./optimized/*/*.small.webp', { eager: true, import: 'default', query: '?url' });
+const ALL_IMAGES = { ...AD_ACCOUNT_GLOB, ...SHOPIFY_GLOB, ...TEAM_GLOB, ...INBOX_GLOB };
+
+export function responsiveImage(src: string) {
+  const entry = Object.entries(ALL_IMAGES).find(([, url]) => url === src);
+  if (!entry) return {};
+  const [path] = entry;
+  const name = path.split('/').pop()!;
+  const size = metadata[name as keyof typeof metadata];
+  const small = SMALL_IMAGES[path.replace(/\.webp$/, '.small.webp')];
+  if (!size) return {};
+  return { width: size.width, height: size.height, srcSet: small && size.smallWidth < size.width ? `${small} ${size.smallWidth}w, ${src} ${size.width}w` : undefined, sizes: '(max-width: 640px) 90vw, (max-width: 1024px) 85vw, 1000px' };
+}
