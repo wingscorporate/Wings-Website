@@ -51,13 +51,19 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab, onOpenContact }) =
     { label: 'Articles', tab: 'about', sectionId: 'articles' },
     { label: 'Process', tab: 'work', sectionId: 'process-section' },
     { label: 'Testimonials', tab: 'about', sectionId: 'testimonials-section' },
-    { label: 'FAQ', tab: 'careers', sectionId: 'faq-section' },
+    { label: 'FAQ', tab: 'home', sectionId: 'faq-section' },
+    { label: 'Careers', tab: 'careers' },
   ];
 
   const handleNavClick = (tab: ActiveTab, sectionId?: string, label = 'Home') => {
     setActiveTab(tab);
     setActiveNavItem(label);
     setMobileMenuOpen(false);
+
+    if (tab === 'careers') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
 
     if (sectionId) {
       window.requestAnimationFrame(() => {

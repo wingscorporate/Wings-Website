@@ -24,6 +24,7 @@ const ContactModal = lazy(() => import('./components/ContactModal').then((module
 const StrategyCallModal = lazy(() => import('./components/StrategyCallModal').then((module) => ({ default: module.StrategyCallModal })));
 const ServiceDetailDrawer = lazy(() => import('./components/ServiceDetailDrawer').then((module) => ({ default: module.ServiceDetailDrawer })));
 const LegalModal = lazy(() => import('./components/LegalModal').then((module) => ({ default: module.LegalModal })));
+const CareersPage = lazy(() => import('./components/CareersPage').then((module) => ({ default: module.CareersPage })));
 const CaseStudyPage = lazy(() => import('./components/CaseStudyPage').then((module) => ({ default: module.CaseStudyPage })));
 import { ArrowRight } from 'lucide-react';
 import { LoadingBoundary } from './components/LoadingBoundary';
@@ -73,6 +74,7 @@ export default function App() {
   const handleTabChange = (tab: ActiveTab) => {
     setSelectedCaseStudy(null);
     setActiveTab(tab);
+    window.scrollTo({ top: 0, behavior: 'auto' });
   };
 
   const handleExploreWork = () => {
@@ -97,7 +99,9 @@ export default function App() {
       />
 
       {/* Main Content View */}
-      {selectedCaseStudy ? (
+      {activeTab === 'careers' ? (
+        <LoadingBoundary><Suspense fallback={deferredFallback}><CareersPage /></Suspense></LoadingBoundary>
+      ) : selectedCaseStudy ? (
         <LoadingBoundary><Suspense fallback={deferredFallback}><CaseStudyPage
           study={selectedCaseStudy}
           onBack={handleBackToCaseStudies}
