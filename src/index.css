@@ -147,6 +147,30 @@
 }
 
 /* Marquee Animation */
+@keyframes inbox-scroll {
+  to { transform: translateX(-50%); }
+}
+
+.inbox-marquee[data-animated="true"] {
+  overflow-x: hidden;
+}
+
+.inbox-marquee[data-animated="true"] .inbox-marquee-track {
+  animation: inbox-scroll 40s linear infinite;
+}
+
+.inbox-marquee[data-paused="true"] .inbox-marquee-track,
+.inbox-marquee:hover .inbox-marquee-track,
+.inbox-marquee:focus-within .inbox-marquee-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inbox-marquee[data-animated="true"] { overflow-x: auto; }
+  .inbox-marquee[data-animated="true"] .inbox-marquee-track { animation: none; }
+  .inbox-marquee-copy, .inbox-motion-control { display: none; }
+}
+
 @keyframes marquee {
   0% { transform: translateX(0%); }
   100% { transform: translateX(-50%); }

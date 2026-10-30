@@ -121,6 +121,12 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab, onOpenContact, onO
 
             <div className="space-y-3 text-sm text-neutral-300">
               <div className="flex items-center gap-3">
+                <Phone className="w-4 h-4 text-purple-400 shrink-0" aria-hidden="true" />
+                <a href="tel:+919230554211" className="inline-flex items-center rounded-sm hover:text-purple-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400">
+                  +91 92305 54211
+                </a>
+              </div>
+              <div className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-purple-400 shrink-0" />
                 <a href="mailto:retail@wings-marketing.com" className="hover:text-purple-300 transition-colors">
                   retail@wings-marketing.com
