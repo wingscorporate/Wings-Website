@@ -28,6 +28,7 @@ export interface CaseStudy {
 
 export interface CareerPosition {
   id: string;
+  vacancies: number;
   title: string;
   department: string;
   salaryRange: string;

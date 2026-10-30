@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useState } from 'react';
+import React, { lazy, Suspense, useState, useEffect } from 'react';
 import { ActiveTab, Service, CaseStudy, CareerPosition } from './types';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
@@ -39,7 +39,7 @@ const WhatsAppIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 );
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('home');
+  const [activeTab, setActiveTab] = useState<ActiveTab>(() => window.location.pathname.replace(/\/$/, '') === '/careers' ? 'careers' : 'home');
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isStrategyCallOpen, setIsStrategyCallOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -47,6 +47,21 @@ export default function App() {
   const [selectedCareer, setSelectedCareer] = useState<CareerPosition | null>(null);
   const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | null>(null);
   const [contactPreselectedService, setContactPreselectedService] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const onPopState = () => {
+      setActiveTab(window.location.pathname.replace(/\/$/, '') === '/careers' ? 'careers' : 'home');
+      setSelectedCaseStudy(null);
+      setSelectedCareer(null);
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'careers') document.title = 'Careers | WINGS Marketing';
+    else document.title = 'WINGS Marketing | E-Commerce Growth & Performance Marketing';
+  }, [activeTab]);
 
   // "Book Your Free Strategy Call" now opens the booking form as a popup
   const handleOpenContact = (preselectedSvc?: string) => {
@@ -76,6 +91,11 @@ export default function App() {
   const handleTabChange = (tab: ActiveTab) => {
     setSelectedCaseStudy(null);
     setActiveTab(tab);
+    const nextPath = tab === 'careers' ? '/careers' : '/';
+    if (window.location.pathname !== nextPath) {
+      window.history.pushState(null, '', nextPath);
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
   };
 
   const handleExploreWork = () => {
@@ -107,6 +127,10 @@ export default function App() {
           onSelectCaseStudy={handleSelectCaseStudy}
           onOpenContact={(svc) => handleOpenContact(svc)}
         /></Suspense></LoadingBoundary>
+      ) : activeTab === 'careers' ? (
+        <main>
+          <CareersSection onApplyJob={setSelectedCareer} />
+        </main>
       ) : (
         <main className="relative">
           {/* 01. Hero Section */}
@@ -164,9 +188,6 @@ export default function App() {
           {/* 16. FAQ Section */}
           <FaqSection onOpenContact={() => handleOpenContact('FAQ Inquiry')} />
 
-          {/* 17. Careers & Open Roles */}
-          <CareersSection onApplyJob={setSelectedCareer} />
-
           {/* 18. Final High-Converting Call-to-Action */}
           <FinalCtaSection
             onOpenContact={() => handleOpenContact('Strategy Call Request')}
@@ -177,13 +198,13 @@ export default function App() {
 
       {/* Footer */}
       <Footer
-        setActiveTab={setActiveTab}
+        setActiveTab={handleTabChange}
         onOpenContact={() => handleOpenContact()}
         onOpenLegal={(type) => setLegalModalType(type)}
       />
 
       {/* Sticky Mobile & Tablet Quick CTA Bar */}
-      <div className="lg:hidden fixed bottom-3 left-3 sm:left-6 right-3 sm:right-6 z-40 bg-[#0A1024]/95 backdrop-blur-xl border border-[#4F7CFF]/40 p-2.5 sm:p-3 rounded-2xl shadow-2xl flex items-center justify-between gap-2 sm:gap-3 glow-blue">
+      {activeTab !== 'careers' && <div className="lg:hidden fixed bottom-3 left-3 sm:left-6 right-3 sm:right-6 z-40 bg-[#0A1024]/95 backdrop-blur-xl border border-[#4F7CFF]/40 p-2.5 sm:p-3 rounded-2xl shadow-2xl flex items-center justify-between gap-2 sm:gap-3 glow-blue">
         <div className="hidden sm:flex flex-col pl-1">
           <span className="text-[10px] text-[#5B8CFF] font-bold uppercase tracking-wider">WINGS Marketing</span>
           <span className="text-xs text-white font-bold">Scale Your D2C Brand</span>
@@ -211,7 +232,7 @@ export default function App() {
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
-      </div>
+      </div>}
 
       {/* Modals & Drawers */}
       <LoadingBoundary><Suspense fallback={null}><StrategyCallModal

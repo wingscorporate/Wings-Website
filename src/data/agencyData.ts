@@ -692,47 +692,74 @@ export const DAILYHUNT_FEATURE = {
 export const CAREER_POSITIONS: CareerPosition[] = [
   {
     id: 'web-developer',
+    vacancies: 10,
     title: 'Web Developer',
-    department: 'Technology',
+    department: 'IT',
     salaryRange: '₹1.2 LPA – ₹3 LPA',
-    location: 'Kolkata, WB (Hybrid / Remote)',
+    location: 'Kolkata, WB (On-Site)',
     type: 'Full-Time',
     experience: '0–3 Years',
-    description: 'Build fast, conversion-focused websites and storefront experiences for ambitious e-commerce brands.',
+    description: 'Develop, customize, and optimize high-performing websites and e-commerce stores using WordPress, Shopify, and modern web technologies.',
     requirements: [
-      'Proven track record managing ₹5M+ monthly ad spend with 4x+ ROAS',
-      'Mastery over Meta Advantage+, CAPI, Google Performance Max & Analytics 4',
-      'Deep experience in D2C e-commerce, A/B testing, and landing page CRO'
+      'Strong knowledge of WordPress or WooCommerce or Shopify or both.',
+      'Ability to build and customize websites, themes, and landing pages.',
+      'Proficiency in HTML, CSS, JavaScript, and responsive design.',
+      'Experience with Shopify Liquid, Elementor, and third-party integrations.',
+      'Ability to optimize website speed, performance, SEO, and user experience.'
     ]
   },
   {
     id: 'business-development-associate',
+    vacancies: 15,
     title: 'Business Development Associate',
     department: 'Business Development',
-    salaryRange: '₹1.5 LPA – ₹3.5 LPA',
-    location: 'Kolkata, WB (On-Site / Hybrid)',
+    salaryRange: '₹1.2 LPA – ₹2 LPA',
+    location: 'Kolkata, WB (On-Site)',
     type: 'Full-Time',
     experience: '0–2 Years',
-    description: 'Create meaningful first conversations with e-commerce brands and help turn qualified opportunities into growth partnerships.',
+    description: 'Identify potential clients, generate qualified leads, and build business relationships for website development and digital marketing services.',
     requirements: [
-      'Expertise in Shopify Plus ecosystem, Klaviyo, and UX analytics tools (Hotjar, Microsoft Clarity)',
-      'Strong analytical mindset with ability to dissect funnels and identify revenue drop-offs',
-      'Experience coordinating creative, media, and tech teams towards monthly revenue goals'
+      'Strong communication and interpersonal skills.',
+      'Ability to research prospects and generate leads.',
+      'Basic understanding of digital marketing and e-commerce.',
+      'Experience or interest in cold calling and client outreach.',
+      'Ability to maintain lead records and schedule client meetings.'
     ]
   },
   {
     id: 'business-development-executive',
+    vacancies: 20,
     title: 'Business Development Executive',
     department: 'Business Development',
     salaryRange: '₹1.5 LPA – ₹3.5 LPA',
-    location: 'Kolkata, WB',
+    location: 'Kolkata, WB (On-Site)',
     type: 'Full-Time',
     experience: '1–3 Years',
-    description: 'Own the outbound and inbound sales cycle for performance marketing and e-commerce growth services.',
+    description: 'Manage client acquisition, sales meetings, negotiations, and deal closures for digital marketing and e-commerce solutions.',
     requirements: [
-      'Deep understanding of social media psychology, viral hooks, and ad psychology',
-      'Proficiency in Premiere Pro / CapCut / After Effects for high-velocity ad testing',
-      'Portfolio of performance video ads that drove measurable conversions'
+      'Experience in B2B sales, lead generation, and client acquisition.',
+      'Strong communication, negotiation, and closing skills.',
+      'Understanding of website development, SEO, and paid advertising services.',
+      'Ability to prepare proposals, conduct meetings, and follow up with clients.',
+      'Ability to achieve monthly sales targets and maintain CRM records.'
+    ]
+  },
+  {
+    id: 'performance-marketer',
+    vacancies: 5,
+    title: 'Performance Marketer',
+    department: 'Performance Marketing',
+    salaryRange: '₹1.2 LPA – ₹3.5 LPA',
+    location: 'Kolkata, WB (On-Site)',
+    type: 'Full-Time',
+    experience: '0–3 Years',
+    description: 'Plan, execute, monitor, and optimize paid advertising campaigns across multiple platforms to maximize leads, conversions, and return on ad spend.',
+    requirements: [
+      'Hands-on knowledge of Meta Ads (Facebook & Instagram Ads).',
+      'Experience with Google Ads, including Search, Display, Shopping, and Performance Max.',
+      'Understanding of Amazon Ads and other e-commerce advertising platforms.',
+      'Knowledge of Meta Pixel, Google Analytics 4, Google Tag Manager, and conversion tracking.',
+      'Ability to optimize ROAS, CPA, CPC, CTR, and advertising budgets.'
     ]
   }
 ];

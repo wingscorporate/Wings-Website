@@ -5,6 +5,7 @@ import {
   ArrowRight,
   BriefcaseBusiness,
   CheckCircle2,
+  ChevronDown,
   FileText,
   Loader2,
   Upload,
@@ -33,7 +34,7 @@ const initialForm: FormState = {
 };
 
 const stepNames = ['Personal Details', 'Professional Experience', 'Role Questions', 'Resume & Submit'];
-const inputClass = 'w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-[#687596] focus:border-[#4F7CFF] focus:ring-2 focus:ring-[#4F7CFF]/20';
+const inputClass = 'w-full min-h-12 rounded-xl border border-[#2B3958] bg-[#101A30] px-4 py-3 text-sm text-[#F1F5FF] outline-none transition-colors placeholder:text-[#8290AD] hover:border-[#465A80] focus:border-[#7EA1FF] focus:ring-2 focus:ring-[#4F7CFF]/25 aria-[invalid=true]:border-rose-400';
 
 export const CareersApplicationModal: React.FC<CareersApplicationModalProps> = ({ isOpen, job, onClose }) => {
   const [form, setForm] = useState<FormState>(initialForm);
@@ -43,6 +44,8 @@ export const CareersApplicationModal: React.FC<CareersApplicationModalProps> = (
   const [submitState, setSubmitState] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [submitError, setSubmitError] = useState('');
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const formScrollRef = useRef<HTMLDivElement>(null);
   const previousJobId = useRef<string | null>(null);
   const careersApiUrl = (import.meta.env.VITE_CAREERS_API_URL as string | undefined)?.trim() || '';
 
@@ -52,8 +55,10 @@ export const CareersApplicationModal: React.FC<CareersApplicationModalProps> = (
 
   useEffect(() => {
     if (!isOpen) return;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    window.setTimeout(() => closeButtonRef.current?.focus(), 0);
+    const focusTimer = window.setTimeout(() => closeButtonRef.current?.focus(), 0);
     if (job?.id !== previousJobId.current) {
       setStep(0);
       setErrors({});
@@ -63,13 +68,38 @@ export const CareersApplicationModal: React.FC<CareersApplicationModalProps> = (
     }
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
+      if (event.key === 'Tab') {
+        const controls = Array.from<HTMLElement>(dialogRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href]') ?? []);
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.body.style.overflow = '';
+      window.clearTimeout(focusTimer);
+      document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', handleKeyDown);
+      previousFocus?.focus();
     };
   }, [isOpen, job?.id, onClose]);
+
+  useEffect(() => {
+    formScrollRef.current?.scrollTo({ top: 0 });
+    if (isOpen) {
+      formScrollRef.current?.querySelector<HTMLElement>('input:not([readonly]), select, textarea')?.focus({ preventScroll: true });
+    }
+  }, [step, isOpen]);
+
+  useEffect(() => {
+    if (submitState === 'success') dialogRef.current?.querySelector<HTMLButtonElement>('button')?.focus();
+  }, [submitState]);
 
   const setValue = (key: string, value: string | boolean) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -192,7 +222,7 @@ export const CareersApplicationModal: React.FC<CareersApplicationModalProps> = (
   if (!isOpen || !job) return null;
 
   if (submitState === 'success') {
-    return <div className="fixed inset-0 z-[90] grid place-items-center bg-[#050816]/90 p-4 backdrop-blur-xl" role="dialog" aria-modal="true">
+    return <div ref={dialogRef} className="career-application fixed inset-0 z-[90] grid place-items-center bg-[#050816]/90 p-4 backdrop-blur-xl" role="dialog" aria-modal="true" aria-label="Application submitted">
       <div className="w-full max-w-lg rounded-3xl border border-[#4F7CFF]/30 bg-[#0A1024] p-8 text-center shadow-2xl shadow-blue-950/40">
         <CheckCircle2 className="mx-auto h-14 w-14 text-emerald-400" />
         <h2 className="mt-5 text-2xl font-display font-bold text-white">Application Submitted Successfully!</h2>
@@ -210,18 +240,35 @@ export const CareersApplicationModal: React.FC<CareersApplicationModalProps> = (
       {errors[key] && <span className="flex items-center gap-1 text-xs text-rose-300"><AlertCircle className="h-3.5 w-3.5" />{errors[key]}</span>}
     </label>
   );
-  const select = (key: string, label: string, options: string[], required = false) => <label className="block space-y-2" key={key}><span className="text-xs font-semibold text-[#D9E2F7]">{label}{required ? ' *' : ''}</span><select id={key} value={String(form[key] ?? '')} onChange={(event) => setValue(key, event.target.value)} className={`${inputClass} appearance-none`}><option value="">Select an option</option>{options.map((option) => <option key={option} value={option}>{option}</option>)}</select>{errors[key] && <span className="text-xs text-rose-300">{errors[key]}</span>}</label>;
+  const select = (key: string, label: string, options: string[], required = false) => (
+    <label className="block space-y-2" key={key}>
+      <span className="text-xs font-semibold text-[#D9E2F7]">{label}{required ? ' *' : ''}</span>
+      <span className="relative block">
+        <select id={key} value={String(form[key] ?? '')}
+          onChange={(event) => setValue(key, event.target.value)}
+          aria-required={required} aria-invalid={Boolean(errors[key])}
+          aria-describedby={errors[key] ? `${key}-error` : undefined}
+          style={{ colorScheme: 'dark' }}
+          className={`${inputClass} appearance-none cursor-pointer pr-11 ${form[key] ? '' : 'text-[#AAB8D1]'}`}>
+          <option value="">Select an option</option>
+          {options.map((option) => <option key={option} value={option}>{option}</option>)}
+        </select>
+        <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9EB7EF]" aria-hidden="true" />
+      </span>
+      {errors[key] && <span id={`${key}-error`} className="text-xs text-rose-300">{errors[key]}</span>}
+    </label>
+  );
   const textarea = (key: string, label: string, required = false) => <label className="block space-y-2 md:col-span-2" key={key}><span className="text-xs font-semibold text-[#D9E2F7]">{label}{required ? ' *' : ''}</span><textarea id={key} rows={4} value={String(form[key] ?? '')} onChange={(event) => setValue(key, event.target.value)} className={`${inputClass} resize-y`} aria-invalid={Boolean(errors[key])} />{errors[key] && <span className="text-xs text-rose-300">{errors[key]}</span>}</label>;
 
-  return <div className="fixed inset-0 z-[90] flex items-center justify-center bg-[#050816]/90 p-3 backdrop-blur-xl sm:p-6" role="dialog" aria-modal="true" aria-labelledby="career-application-title" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+  return <div ref={dialogRef} className="career-application fixed inset-0 z-[90] flex items-center justify-center bg-[#050816]/90 p-3 backdrop-blur-xl sm:p-6" role="dialog" aria-modal="true" aria-labelledby="career-application-title" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <div className="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-5xl flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0A1024] shadow-2xl shadow-black/50 sm:max-h-[calc(100dvh-3rem)]">
       <div className="flex items-start justify-between gap-4 border-b border-white/10 px-5 py-5 sm:px-8">
-        <div><p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#7EA1FF]">WINGS CAREERS</p><h2 id="career-application-title" className="mt-2 text-xl font-display font-bold text-white sm:text-2xl">Apply for {job.title}</h2><p className="mt-1 text-xs text-[#8B9AC0]">Complete your application in four short steps.</p></div>
+        <div><p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#7EA1FF]">WINGS CAREERS · STEP {step + 1} OF 4</p><h2 id="career-application-title" className="mt-2 text-xl font-display font-bold text-white sm:text-2xl">Apply for {job.title}</h2><p className="mt-2 text-xs leading-relaxed text-[#AAB8D1]">{job.location} · {job.salaryRange}</p></div>
         <button ref={closeButtonRef} type="button" onClick={onClose} className="rounded-xl p-2 text-[#A9B8D4] transition-colors hover:bg-white/10 hover:text-white" aria-label="Close application form"><X className="h-5 w-5" /></button>
       </div>
       <div className="border-b border-white/10 px-5 py-4 sm:px-8"><div className="grid grid-cols-4 gap-2">{stepNames.map((name, index) => <button type="button" key={name} onClick={() => index < step && setStep(index as Step)} className={`text-left text-[10px] font-bold uppercase tracking-wider ${index === step ? 'text-[#7EA1FF]' : index < step ? 'text-white' : 'text-[#687596]'}`}><span className={`mr-1 inline-grid h-5 w-5 place-items-center rounded-full border ${index <= step ? 'border-[#4F7CFF] bg-[#4F7CFF]/20' : 'border-white/15'}`}>{index + 1}</span><span className="hidden sm:inline">{name}</span></button>)}</div><div className="mt-3 h-1 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-[#4F7CFF] transition-all" style={{ width: `${((step + 1) / 4) * 100}%` }} /></div></div>
       <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-8">
+        <div ref={formScrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-6 sm:px-8">
           <div className="mb-6 flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-[#4F7CFF]/15 text-[#7EA1FF]">{step === 0 ? <User className="h-5 w-5" /> : step === 3 ? <FileText className="h-5 w-5" /> : <BriefcaseBusiness className="h-5 w-5" />}</div><div><h3 className="font-display font-bold text-white">{stepNames[step]}</h3><p className="text-xs text-[#8B9AC0]">Fields marked with * are required.</p></div></div>
           {step === 0 && <div className="grid gap-5 md:grid-cols-2">{field('fullName', 'Full Name', { required: true })}{field('email', 'Email Address', { type: 'email', required: true })}{field('mobile', 'Mobile Number', { type: 'tel', required: true })}{field('whatsapp', 'WhatsApp Number', { type: 'tel' })}{field('cityState', 'Current City and State', { required: true })}<label className="block space-y-2"><span className="text-xs font-semibold text-[#D9E2F7]">Applying For *</span><input value={job.title} readOnly className={`${inputClass} cursor-not-allowed opacity-70`} /></label></div>}
           {step === 1 && <div className="grid gap-5 md:grid-cols-2">{select('experience', 'Total Work Experience', ['Fresher', '0–1 years', '1–2 years', '2–3 years', '3–5 years', '5+ years'], true)}{select('noticePeriod', 'Notice Period', ['Immediately', '15 Days', '30 Days', '60 Days', '90 Days'], true)}{field('currentTitle', 'Current Job Title')}{field('currentCompany', 'Current Company')}{field('currentCtc', 'Current Annual CTC')}{field('expectedCtc', 'Expected Annual CTC')}{field('qualification', 'Highest Qualification', { required: true })}{textarea('relevantSkills', 'Relevant Skills', true)}{field('portfolioUrl', 'Portfolio / Website URL', { type: 'url' })}{field('linkedinUrl', 'LinkedIn Profile URL', { type: 'url' })}{field('githubUrl', 'GitHub Profile URL', { type: 'url' })}</div>}

@@ -62,7 +62,7 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab, onOpenContact, onO
                 <button
                   onClick={() => {
                     setActiveTab('about');
-                    document.getElementById('about-section')?.scrollIntoView({ behavior: 'smooth' });
+                    window.requestAnimationFrame(() => document.getElementById('about-section')?.scrollIntoView({ behavior: 'smooth' }));
                   }}
                   className="hover:text-purple-400 transition-colors cursor-pointer"
                 >
@@ -73,7 +73,7 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab, onOpenContact, onO
                 <button
                   onClick={() => {
                     setActiveTab('services');
-                    document.getElementById('services-section')?.scrollIntoView({ behavior: 'smooth' });
+                    window.requestAnimationFrame(() => document.getElementById('services-section')?.scrollIntoView({ behavior: 'smooth' }));
                   }}
                   className="hover:text-purple-400 transition-colors cursor-pointer"
                 >
@@ -84,7 +84,7 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab, onOpenContact, onO
                 <button
                   onClick={() => {
                     setActiveTab('work');
-                    document.getElementById('work-section')?.scrollIntoView({ behavior: 'smooth' });
+                    window.requestAnimationFrame(() => document.getElementById('work-section')?.scrollIntoView({ behavior: 'smooth' }));
                   }}
                   className="hover:text-purple-400 transition-colors cursor-pointer"
                 >
@@ -95,7 +95,6 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab, onOpenContact, onO
                 <button
                   onClick={() => {
                     setActiveTab('careers');
-                    document.getElementById('careers-section')?.scrollIntoView({ behavior: 'smooth' });
                   }}
                   className="hover:text-purple-400 transition-colors cursor-pointer flex items-center gap-1.5"
                 >

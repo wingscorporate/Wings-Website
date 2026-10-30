@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Menu, X, ArrowRight, Phone, Mail, MapPin } from 'lucide-react';
 import { ActiveTab } from '../types';
 import { WingsLogo } from './WingsLogo';
@@ -15,27 +15,65 @@ interface NavbarProps {
   onOpenContact: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ setActiveTab, onOpenContact }) => {
+export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onOpenContact }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeNavItem, setActiveNavItem] = useState('Home');
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (activeTab === 'careers' || activeTab === 'home') {
+      setActiveNavItem(activeTab === 'careers' ? 'Careers' : 'Home');
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
 
-    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const desktop = window.matchMedia('(min-width: 1280px)');
+    const closeOnDesktop = () => {
+      if (desktop.matches) setMobileMenuOpen(false);
+    };
+    desktop.addEventListener('change', closeOnDesktop);
+    return () => desktop.removeEventListener('change', closeOnDesktop);
   }, []);
 
   useEffect(() => {
     if (!mobileMenuOpen) return;
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMobileMenuOpen(false);
+      if (event.key === 'Escape') {
+        setMobileMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
+      if (event.key === 'Tab') {
+        const controls = [
+          ...Array.from<HTMLElement>(headerRef.current?.querySelectorAll<HTMLElement>('button, a[href]') ?? []),
+          ...Array.from<HTMLElement>(menuRef.current?.querySelectorAll<HTMLElement>('button, a[href]') ?? [])
+        ].filter((element) => element.getClientRects().length > 0);
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
     };
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+    menuRef.current?.querySelector<HTMLButtonElement>('button')?.focus();
     document.addEventListener('keydown', closeOnEscape);
     return () => {
       document.body.style.overflow = previousOverflow;
@@ -48,16 +86,14 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab, onOpenContact }) =
     { label: 'Services', tab: 'services', sectionId: 'services-section' },
     { label: 'Results', tab: 'results', sectionId: 'results-section' },
     { label: 'Team', tab: 'about', sectionId: 'team-gallery' },
-    { label: 'Articles', tab: 'about', sectionId: 'articles' },
-    { label: 'Process', tab: 'work', sectionId: 'process-section' },
     { label: 'Testimonials', tab: 'about', sectionId: 'testimonials-section' },
-    { label: 'FAQ', tab: 'careers', sectionId: 'faq-section' },
-    { label: 'Careers', tab: 'careers', sectionId: 'careers-section' },
+    { label: 'Careers', tab: 'careers' },
   ];
 
   const handleNavClick = (tab: ActiveTab, sectionId?: string, label = 'Home') => {
     setActiveTab(tab);
     setActiveNavItem(label);
+    if (mobileMenuOpen) menuButtonRef.current?.focus();
     setMobileMenuOpen(false);
 
     if (sectionId) {
@@ -78,24 +114,27 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab, onOpenContact }) =
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-[60] transition-all duration-300 ${
-          isScrolled
-            ? 'bg-[#080808]/85 backdrop-blur-md border-b border-white/10 py-4 shadow-2xl'
-            : 'bg-transparent py-6'
+        ref={headerRef}
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+        className={`fixed top-0 left-0 right-0 z-[60] border-b transition-colors duration-300 ${
+          isScrolled || mobileMenuOpen
+            ? 'bg-[#050816]/95 backdrop-blur-md border-white/10 shadow-2xl'
+            : 'bg-[#050816]/90 border-white/5 xl:bg-transparent xl:border-transparent'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <div className="h-[72px] xl:h-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
           {/* Brand Logo (Left) */}
           <button
             onClick={() => handleNavClick('home')}
-            className="group text-left cursor-pointer focus:outline-none"
+            type="button"
+            className="group shrink-0 rounded-lg text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8FB2FF]"
             aria-label="WINGS Marketing Home"
           >
             <WingsLogo size="md" showText={false} />
           </button>
 
           {/* Desktop Nav Items */}
-          <nav className="hidden lg:flex items-center gap-1.5 bg-[#0A1024]/80 backdrop-blur-lg px-4 py-2 rounded-full border border-white/10 shadow-inner">
+          <nav aria-label="Main navigation" className="hidden xl:flex items-center gap-1 bg-[#0A1024]/80 backdrop-blur-lg px-3 py-2 rounded-full border border-white/10 shadow-inner">
             {navItems.map((item) => {
               const isActive = activeNavItem === item.label;
               return (
@@ -116,7 +155,7 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab, onOpenContact }) =
           </nav>
 
           {/* Direct WhatsApp Button */}
-          <div className="hidden lg:flex items-center gap-2.5 shrink-0">
+          <div className="hidden xl:flex items-center gap-2.5 shrink-0">
             {/* Direct WhatsApp Button */}
             <a
               href="https://wa.me/919230554211?text=Hi%20WINGS%20Marketing%2C%20I%20want%20to%20scale%20my%20D2C%20brand!"
@@ -132,10 +171,11 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab, onOpenContact }) =
 
           {/* Mobile/Tablet Menu Trigger */}
           <button
+            ref={menuButtonRef}
             type="button"
             onClick={() => setMobileMenuOpen((open) => !open)}
-            className="lg:hidden p-2.5 rounded-xl bg-neutral-900 border border-white/10 text-white hover:bg-neutral-800 transition-colors cursor-pointer shrink-0"
-            aria-label="Toggle Mobile/Tablet Menu"
+            className="xl:hidden flex h-11 w-11 items-center justify-center rounded-xl bg-[#0A1024] border border-white/15 text-white hover:bg-[#152244] transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8FB2FF]"
+            aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-navigation"
           >
@@ -146,8 +186,10 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab, onOpenContact }) =
 
       {/* Fullscreen Mobile & Tablet Navigation Menu */}
       {mobileMenuOpen && (
-        <div id="mobile-navigation" className="fixed inset-0 z-50 bg-[#050816]/98 backdrop-blur-2xl lg:hidden flex flex-col justify-between p-6 sm:p-10 pt-24 animate-in fade-in duration-200 overflow-y-auto overscroll-contain">
-          <div className="flex flex-col gap-2">
+        <div ref={menuRef} id="mobile-navigation"
+          style={{ top: 'calc(72px + env(safe-area-inset-top, 0px))', paddingBottom: 'max(24px, env(safe-area-inset-bottom, 0px))' }}
+          className="fixed inset-x-0 bottom-0 z-50 bg-[#050816] xl:hidden flex flex-col gap-6 px-4 py-5 sm:px-8 overflow-y-auto overscroll-contain">
+          <nav aria-label="Mobile navigation" className="flex flex-col gap-1 shrink-0">
             <span className="text-[10px] tracking-widest uppercase text-[#5B8CFF] font-bold mb-2">
               Navigation Menu
             </span>
@@ -156,15 +198,15 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab, onOpenContact }) =
                 key={item.sectionId || item.label}
                 onClick={() => handleNavClick(item.tab, item.sectionId, item.label)}
                 aria-current={activeNavItem === item.label ? 'location' : undefined}
-                className="text-left font-display text-xl sm:text-2xl font-bold text-white hover:text-[#5B8CFF] py-3.5 border-b border-white/5 transition-colors flex items-center justify-between cursor-pointer"
+                className={`min-h-11 rounded-lg px-3 text-left font-display text-base sm:text-lg font-bold py-2.5 transition-colors flex items-center justify-between cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8FB2FF] ${activeNavItem === item.label ? 'bg-[#4F7CFF]/15 text-[#8FB2FF]' : 'text-white hover:bg-white/5 hover:text-[#8FB2FF]'}`}
               >
                 <span>{item.label}</span>
                 <ArrowRight className="w-5 h-5 text-neutral-500" />
               </button>
             ))}
-          </div>
+          </nav>
 
-          <div className="flex flex-col gap-4 pt-6 border-t border-white/10 mt-6">
+          <div className="flex shrink-0 flex-col gap-4 pt-5 border-t border-white/10 mt-auto">
             {/* Quick Action Contact Cards */}
             <div className="flex flex-col gap-2.5">
               <a

@@ -5,7 +5,9 @@ import {
   BadgeCheck,
   Maximize2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Pause,
+  Play
 } from 'lucide-react';
 import { INBOX_SLIDES, ShotSlide } from '../images';
 import { ImageLightbox } from './ImageLightbox';
@@ -64,25 +66,34 @@ export const InboxScreenshotsSlider: React.FC = () => {
   const slides = INBOX_SLIDES.filter((slide): slide is ShotSlide & { src: string } => Boolean(slide.src));
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [autoplayEnabled, setAutoplayEnabled] = useState(false);
+
+  useEffect(() => {
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const sync = () => setAutoplayEnabled(!preference.matches);
+    sync();
+    preference.addEventListener('change', sync);
+    return () => preference.removeEventListener('change', sync);
+  }, []);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const triggerRef = useRef<HTMLElement | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
   const activeSlide = slides[activeIndex];
 
   useEffect(() => {
-    if (isPaused || isLightboxOpen || slides.length <= 1) return;
+    if (!autoplayEnabled || isPaused || isLightboxOpen || slides.length <= 1) return;
     const interval = window.setInterval(() => {
       setActiveIndex((index) => (index + 1) % slides.length);
     }, AUTOPLAY_INTERVAL_MS);
     return () => window.clearInterval(interval);
-  }, [isPaused, isLightboxOpen, slides.length]);
+  }, [autoplayEnabled, isPaused, isLightboxOpen, slides.length]);
 
   const moveSlide = (direction: number) => {
     setActiveIndex((index) => (index + direction + slides.length) % slides.length);
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6 rounded-3xl border border-[#5B8CFF]/20 bg-gradient-to-br from-[#101B38] via-[#0A1024] to-[#080D1E] p-4 sm:p-7 lg:p-8">
       {/* Header */}
       <div className="flex items-end justify-between gap-3">
         <div>
@@ -90,9 +101,12 @@ export const InboxScreenshotsSlider: React.FC = () => {
             <MessageSquareQuote className="w-3 h-3" />
             <span>INBOX SCREENSHOTS</span>
           </div>
-          <h3 className="font-display font-bold text-sm sm:text-base text-white mt-1">
+          <h3 className="font-display font-bold text-xl sm:text-2xl text-white mt-3 tracking-tight">
             Real messages from real clients.
           </h3>
+          <p className="mt-2 max-w-lg text-xs leading-relaxed text-[#AAB2C8] sm:text-sm">
+            The conversations behind our client relationships. Select a screenshot to read the full exchange.
+          </p>
         </div>
         <span className="hidden sm:flex items-center gap-1 text-[10px] text-emerald-400 font-semibold">
           <BadgeCheck className="w-3.5 h-3.5" /> Client shared
@@ -115,11 +129,17 @@ export const InboxScreenshotsSlider: React.FC = () => {
       ) : (
         <div
           ref={carouselRef}
-          tabIndex={-1}
+          tabIndex={0}
           role="region"
           aria-roledescription="carousel"
           aria-label="Inbox client screenshots"
           className="space-y-3 outline-none"
+          onKeyDown={(event) => {
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+              event.preventDefault();
+              moveSlide(event.key === 'ArrowLeft' ? -1 : 1);
+            }
+          }}
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
           onFocusCapture={() => setIsPaused(true)}
@@ -127,7 +147,7 @@ export const InboxScreenshotsSlider: React.FC = () => {
             if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setIsPaused(false);
           }}
         >
-          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#070C1D] p-3 sm:p-5">
+          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[radial-gradient(ellipse_at_top,_#19284A_0%,_#070C1D_70%)] p-3 sm:p-5">
             <div className="flex h-[340px] items-center justify-center px-10 sm:h-[440px] sm:px-14 lg:h-[520px]">
               {activeSlide && (
                 <InboxSlideButton
@@ -163,9 +183,35 @@ export const InboxScreenshotsSlider: React.FC = () => {
               </>
             )}
           </div>
-          <p className="text-center text-xs text-[#AAB2C8]" aria-live="polite">
-            Screenshot {activeIndex + 1} of {slides.length} <span className="mx-1 text-white/30">·</span> Auto-advances every 10 seconds
-          </p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs text-[#AAB2C8]" aria-live={autoplayEnabled ? 'off' : 'polite'} aria-atomic="true">
+              <span className="font-semibold text-white">{String(activeIndex + 1).padStart(2, '0')}</span>
+              <span className="mx-2 text-white/30">/</span>{String(slides.length).padStart(2, '0')}
+              <span className="ml-3 hidden sm:inline">Click image to expand</span>
+            </p>
+            {slides.length > 1 && (
+              <button type="button" onClick={() => setAutoplayEnabled((enabled) => !enabled)}
+                aria-label={autoplayEnabled ? 'Pause automatic slideshow' : 'Play automatic slideshow'}
+                className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-xs text-[#AAB2C8] hover:bg-white/5 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8FB2FF]">
+                {autoplayEnabled ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+                {autoplayEnabled ? 'Pause slideshow' : 'Play slideshow'}
+              </button>
+            )}
+          </div>
+          {slides.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto pb-2 pt-1 sm:gap-3" aria-label="Choose an inbox screenshot">
+              {slides.map((slide, index) => (
+                <button key={slide.fileName} type="button"
+                  aria-label={`Show inbox screenshot ${index + 1}`}
+                  aria-current={index === activeIndex ? 'true' : undefined}
+                  onClick={() => setActiveIndex(index)}
+                  className={`relative h-20 w-16 shrink-0 overflow-hidden rounded-xl border-2 p-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8FB2FF] sm:h-24 sm:w-20 ${index === activeIndex ? 'border-[#5B8CFF] bg-[#5B8CFF]/15' : 'border-white/10 bg-[#070C1D] hover:border-white/40'}`}>
+                  <img src={slide.src} alt="" loading="lazy" decoding="async" className="h-full w-full rounded-md object-cover object-top" />
+                  <span className="absolute bottom-1 right-1 rounded bg-[#070C1D]/90 px-1.5 py-0.5 text-[10px] font-semibold text-white">{index + 1}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -173,7 +219,7 @@ export const InboxScreenshotsSlider: React.FC = () => {
         <ImageLightbox
           src={activeSlide.src}
           alt={`Inbox screenshot ${activeSlide.index}`}
-          caption={`${activeSlide.index} / ${slides.length} · ${activeSlide.fileName}`}
+          caption={`Client conversation ${activeIndex + 1} of ${slides.length}`}
           onClose={() => setIsLightboxOpen(false)}
           onPrevious={() => moveSlide(-1)}
           onNext={() => moveSlide(1)}

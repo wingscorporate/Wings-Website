@@ -1,5 +1,38 @@
 @import "tailwindcss";
 
+/* Native dropdown menus need an opaque background on Windows browsers. */
+.career-application select,
+.career-application select option,
+.career-application select optgroup {
+  color-scheme: dark;
+  background-color: #101a30;
+  color: #f1f5ff;
+}
+
+.career-application select option:checked {
+  background-color: #25488b;
+  color: #fff;
+}
+
+.career-application button:focus-visible {
+  outline: 2px solid #8fb2ff;
+  outline-offset: 3px;
+}
+
+.career-application input,
+.career-application select,
+.career-application textarea {
+  font-size: 16px;
+}
+
+@media (min-width: 640px) {
+  .career-application input,
+  .career-application select,
+  .career-application textarea {
+    font-size: 14px;
+  }
+}
+
 @layer base {
   :root {
     --font-display: 'Space Grotesk', sans-serif;
