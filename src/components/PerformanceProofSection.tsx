@@ -62,7 +62,7 @@ const Slide: React.FC<{
               </code>
             </div>
             <div className="text-[10px] text-[#AAB2C8]/70">
-              {isShopify ? 'shopify1.jpg → shopify20.jpg' : 'ads1.jpg → ads20.jpg'}
+              Any filename is supported. Images are discovered automatically.
             </div>
           </div>
         </div>
@@ -207,14 +207,11 @@ export const PerformanceProofSection: React.FC<PerformanceProofSectionProps> = (
                 Add your {activeTab === 'shopify' ? 'Shopify' : 'Ad Account'} screenshots
               </div>
               <div className="text-[11px] text-[#AAB2C8]">
-                Drop 5 images into{' '}
+                Add images to{' '}
                 <code className="px-1.5 py-0.5 rounded bg-white/10 text-[#8FB2FF] font-mono">
                   src/images/{activeTab === 'shopify' ? 'shopify ss' : 'ad account ss'}/
                 </code>{' '}
-                named{' '}
-                <code className="font-mono text-[#8FB2FF]">
-                  {activeTab === 'shopify' ? 'shopify1.jpg … shopify5.jpg' : 'ads1.jpg … ads5.jpg'}
-                </code>
+                using any filename. Supported: JPG, JPEG, PNG, WebP, and AVIF.
               </div>
             </div>
           ) : (

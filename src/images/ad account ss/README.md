@@ -1,8 +1,9 @@
 # Ads Manager / Ad Account screenshots
 
-Drop your **Ad Account (Ads Manager) backend screenshots** here.
+Drop your backend screenshots in this folder.
 
-- File names: `ads1.jpg`, `ads2.jpg`, `ads3.jpg`, `ads4.jpg`, `ads5.jpg`
-- **Exactly 5 slides.** The slider shows these 5 and rotates every 5 seconds.
-- Supported: `.jpg` `.jpeg` `.png` `.webp` `.avif`
-- Landscape screenshots look best (wide Ads Manager tables).
+- Any filename works, including WhatsApp image filenames.
+- All supported images are discovered automatically and sorted by filename.
+- Supported: .jpg, .jpeg, .png, .webp, .avif (including uppercase extensions).
+- No renaming or optimization step is required; optimized copies are used when available.
+- Landscape screenshots look best.

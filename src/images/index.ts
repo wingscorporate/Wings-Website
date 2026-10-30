@@ -3,16 +3,15 @@
  * -------------
  * Put your real photos in these folders inside `src/images`:
  *
- *   src/images/ad account ss/ads1.jpg … ads5.jpg          (5 max — Ads Manager screenshots)
- *   src/images/shopify ss/shopify1.jpg … shopify5.jpg     (5 max — Shopify backend screenshots)
+ *   src/images/ad account ss/*                             (all supported image files)
+ *   src/images/shopify ss/*                                (all supported image files)
  *   src/images/team photos/*                               (all supported image files)
  *   src/images/inbox ss/*                                  (all supported image files)
  *
  * Supported extensions: .jpg .jpeg .png .webp .avif
  *
- * Inbox screenshots are discovered automatically and sorted by filename.
- * Ads, Shopify, and team photo groups use numbered slots; missing numbers are
- * skipped so you can add those photos over time without touching any code.
+ * Screenshots are discovered automatically and sorted naturally by filename.
+ * Ads and Shopify originals work directly; optimized copies are used when available.
  */
 
 // NOTE: import.meta.glob() requires a LITERAL string pattern — it cannot take a
@@ -41,18 +40,8 @@ const INBOX_GLOB = import.meta.glob<string>('./optimized/inbox ss/*.webp', {
   query: '?url'
 });
 
-/** Sort by the numeric part of the filename: ads1 < ads2 < ads10 */
-const sortByNumber = (entries: [string, string][]): [string, string][] =>
-  [...entries].sort((a, b) => {
-    const numA = parseInt(a[0].match(/(\d+)(?!.*\d)/)?.[1] || '0', 10);
-    const numB = parseInt(b[0].match(/(\d+)(?!.*\d)/)?.[1] || '0', 10);
-    return numA - numB;
-  });
-
-export const MAX_SCREENSHOT_SLIDES = 5;
-
 export type ShotSlide = {
-  /** 1-based index, matches the filename number (ads1 -> 1) */
+  /** 1-based position in the sorted screenshot list */
   index: number;
   fileName: string;
   src: string | null;
@@ -64,35 +53,30 @@ export type TeamPhoto = {
   src: string | null;
 };
 
-/** Build a fixed-length slot list for a filename prefix (ads / shopify / inbox) */
-const buildSlots = (entries: [string, string][], prefix: string, max: number): ShotSlide[] => {
-  const sorted = sortByNumber(entries);
-  return Array.from({ length: max }, (_, i) => {
-    const index = i + 1;
-    const match = sorted.find(([path]) => parseInt(path.match(/(\d+)(?!.*\d)/)?.[1] || '0', 10) === index);
-    return {
-      index,
-      fileName: `${prefix}${index}.jpg`,
-      src: match ? match[1] : null
-    };
-  });
-};
+// Originals are discovered directly, so new uploads do not need a build-time
+// optimization step or a particular filename. Use an optimized copy when present.
+const AD_ACCOUNT_ORIGINALS = import.meta.glob<string>('./ad account ss/*.{jpg,jpeg,png,webp,avif,JPG,JPEG,PNG,WEBP,AVIF}', {
+  eager: true, import: 'default', query: '?url'
+});
+const SHOPIFY_ORIGINALS = import.meta.glob<string>('./shopify ss/*.{jpg,jpeg,png,webp,avif,JPG,JPEG,PNG,WEBP,AVIF}', {
+  eager: true, import: 'default', query: '?url'
+});
 
 const entriesOf = (glob: Record<string, string> | undefined) => (glob ? Object.entries(glob).filter(([path]) => !path.endsWith('.small.webp')) : []);
 
-// ---- Ads Manager (Ad Account) screenshots: ads1..ads5 ----------------------
-export const AD_ACCOUNT_SLIDES: ShotSlide[] = buildSlots(
-  entriesOf(AD_ACCOUNT_GLOB),
-  'ads',
-  MAX_SCREENSHOT_SLIDES
-);
+const discoverScreenshots = (originals: Record<string, string>, optimized: Record<string, string>): ShotSlide[] => {
+  const entries = entriesOf(originals);
+  return (entries.length ? entries : entriesOf(optimized))
+    .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }))
+    .map(([path, src], position) => ({
+      index: position + 1,
+      fileName: path.split('/').pop() || 'screenshot',
+      src: optimized[path.replace('./', './optimized/') + '.webp'] || src
+    }));
+};
 
-// ---- Shopify screenshots: shopify1..shopify5 -------------------------------
-export const SHOPIFY_SLIDES: ShotSlide[] = buildSlots(
-  entriesOf(SHOPIFY_GLOB),
-  'shopify',
-  MAX_SCREENSHOT_SLIDES
-);
+export const AD_ACCOUNT_SLIDES = discoverScreenshots(AD_ACCOUNT_ORIGINALS, AD_ACCOUNT_GLOB);
+export const SHOPIFY_SLIDES = discoverScreenshots(SHOPIFY_ORIGINALS, SHOPIFY_GLOB);
 
 // ---- Inbox / testimonial screenshots: include every supported image --------
 export const INBOX_SLIDES: ShotSlide[] = entriesOf(INBOX_GLOB)
