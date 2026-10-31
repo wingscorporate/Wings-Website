@@ -66,7 +66,7 @@ In **GitHub → repository Settings → Secrets and variables → Actions → Va
 VITE_CAREERS_API_URL=https://YOUR-SERVICE.onrender.com/api/careers/applications
 ```
 
-Use the Render URL, never the Apps Script URL or secret. The workflow now rejects a missing, malformed or direct-Google endpoint before building. It reads the public URL at build time, runs the simulated API tests, and uses `npm run build:frontend` so the Pages artifact contains only browser assets. After setting it, run **Actions → Deploy GitHub Pages → Run workflow** on `main`. A successful API deployment alone does not update an already-built frontend.
+Use the Render URL, never the Apps Script URL or secret. The workflow now defaults VITE_CAREERS_API_URL to https://wings-careers-api.onrender.com/api/careers/applications if no repository variable is set. An explicit override must still be valid; malformed or direct-Google endpoints are rejected before building. It reads the public URL at build time, runs the simulated API tests, and uses `npm run build:frontend` so the Pages artifact contains only browser assets. After setting it, run **Actions → Deploy GitHub Pages → Run workflow** on `main`. A successful API deployment alone does not update an already-built frontend.
 
 ## 6. Live verification and cleanup
 
@@ -105,6 +105,8 @@ Local tests simulate Google and do not establish live success. Complete the Rend
 No secrets or full candidate payloads should be included in troubleshooting screenshots or logs.
 
 The browser now displays a sanitized `CAREERS_*` reference, also recorded with the random application ID in Render logs. `CAREERS_UPSTREAM_AUTH` identifies a rejected shared secret; `CAREERS_UPSTREAM_RESPONSE` identifies malformed/unexpected upstream confirmation (including Google sign-in HTML); `CAREERS_UPSTREAM_TIMEOUT` identifies an uncertain timeout; and `CAREERS_SAVE_UNCONFIRMED` identifies a Google persistence error. These do not assert that no row was saved. Retry unchanged to keep the same ID.
+
+For the latest live verification and exact confirmation-error paths, see `docs/careers-confirmation-investigation.md`. Four synthetic applications were verified in Career Applications; editor-side cleanup remains pending.
 
 ## Investigation evidence
 

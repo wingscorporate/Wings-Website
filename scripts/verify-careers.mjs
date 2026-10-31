@@ -47,8 +47,11 @@ for (const receipt of receipts) {
   });
   const submit = async () => {
     const response = await fetch(api, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal: AbortSignal.timeout(120000) });
-    const result = await response.json();
-    if (!response.ok || result.saved !== true || result.applicationId !== receipt.applicationId) throw new Error(`Unconfirmed save for ${receipt.jobId}. Check the ID before retrying/cleaning up.`);
+    const result = await response.json().catch(() => null);
+    receipt.lastHttpStatus = response.status;
+    receipt.lastCode = typeof result?.code === 'string' && /^CAREERS_[A-Z_]+$/.test(result.code) ? result.code : 'NO_STRUCTURED_CODE';
+    writeFileSync(output, JSON.stringify(receipts, null, 2));
+    if (!response.ok || result?.saved !== true || result?.applicationId !== receipt.applicationId) throw new Error(`Unconfirmed save for ${receipt.jobId}: HTTP ${response.status}, ${receipt.lastCode}. Inspect the recorded application ID before retrying or cleaning up.`);
     return result;
   };
   const results = await Promise.all([submit(), submit()]);

@@ -258,6 +258,26 @@ test('browser confirmation rejects HTML, malformed or mismatched responses and n
   await confirmedCareerResponse(new Response(JSON.stringify({ success: true, saved: true, applicationId: id })), id);
 });
 
+test('every unconfirmed fallback rejects false success, missing IDs, primitive JSON and non-2xx confirmations', async () => {
+  const id = randomUUID();
+  const responses = [
+    new Response('not-json'),
+    new Response('null'),
+    new Response('true'),
+    new Response('[]'),
+    new Response(JSON.stringify({ success: true, saved: true })),
+    new Response(JSON.stringify({ success: true, saved: false, applicationId: id })),
+    new Response(JSON.stringify({ success: true, saved: true, applicationId: 'different-id' })),
+    new Response(JSON.stringify({ success: true, saved: true, applicationId: id }), { status: 500 }),
+    new Response(JSON.stringify({ success: false, code: 'invalid-private-error', message: 'private details' }), { status: 502 }),
+  ];
+  for (const response of responses) {
+    await assert.rejects(confirmedCareerResponse(response, id), (error: Error) => error.message.includes('CAREERS_RESPONSE_UNCONFIRMED') && !error.message.includes('private details'));
+  }
+  await assert.rejects(confirmedCareerResponse(new Response(JSON.stringify({ success: false, code: 'CAREERS_UPSTREAM_AUTH' }), { status: 503 }), id), /CAREERS_UPSTREAM_AUTH/);
+  await confirmedCareerResponse(new Response(JSON.stringify({ success: true, saved: true, applicationId: id, duplicate: true })), id);
+});
+
 test('API distinguishes authentication, malformed responses, persistence uncertainty, conflicts and timeouts safely', async (t) => {
   const cases: Array<[() => Promise<Response>, number, string]> = [
     [async () => new Response(JSON.stringify({ success: false, code: 'UNAUTHORIZED', secret: 'private-server-secret' })), 503, 'CAREERS_UPSTREAM_AUTH'],

@@ -18,6 +18,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Public API URL only. Private Google configuration stays in Render.
+      VITE_CAREERS_API_URL: ${{ vars.VITE_CAREERS_API_URL || 'https://wings-careers-api.onrender.com/api/careers/applications' }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -34,13 +37,10 @@ jobs:
         run: npm run test:careers
       - name: Verify public careers endpoint configuration
         run: npm run check:careers-config
-        env:
-          VITE_CAREERS_API_URL: ${{ vars.VITE_CAREERS_API_URL }}
       - name: Build static site
         run: npm run build:frontend
         env:
           GITHUB_ACTIONS: 'true'
-          VITE_CAREERS_API_URL: ${{ vars.VITE_CAREERS_API_URL }}
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site artifact
