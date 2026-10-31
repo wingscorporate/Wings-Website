@@ -33,19 +33,26 @@ const Slide: React.FC<{
   onExpand: () => void;
 }> = ({ slide, kind, index, total, onExpand }) => {
   const isShopify = kind === 'shopify';
+  const [hasError, setHasError] = useState(false);
+  useEffect(() => setHasError(false), [slide.src]);
 
   return (
-    <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-[#070C1D] h-[240px] sm:h-[320px] lg:h-[400px] group">
-      {slide.src ? (
-        <img
+    <div className="relative flex flex-col rounded-2xl overflow-hidden border border-white/10 bg-[#070C1D] group">
+      <div className="flex h-[280px] items-center justify-center bg-[radial-gradient(ellipse_at_center,_#182546_0%,_#070C1D_75%)] p-3 sm:h-[400px] sm:p-5 lg:h-[520px]">
+      {slide.src && !hasError ? (
+        <button type="button" onClick={onExpand}
+          aria-label={`Expand ${isShopify ? 'Shopify' : 'Ads Manager'} screenshot ${index + 1}`}
+          className="flex h-full w-full items-center justify-center rounded-lg cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8FB2FF]">
+          <img
           src={slide.src}
           {...responsiveImage(slide.src)}
           decoding="async"
           alt={`${isShopify ? 'Shopify' : 'Ads Manager'} screenshot ${index + 1} of ${total}`}
           loading="lazy"
-          onClick={onExpand}
-          className="w-full h-full object-contain object-top bg-[#050816] cursor-zoom-in"
+          onError={() => setHasError(true)}
+          className="block h-full w-full min-w-0 object-contain object-center drop-shadow-[0_12px_30px_rgba(0,0,0,0.35)]"
         />
+        </button>
       ) : (
         <div className="w-full h-full flex flex-col items-center justify-center gap-3 px-6 text-center bg-[radial-gradient(circle_at_50%_30%,rgba(79,124,255,0.14),transparent_60%)]">
           <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-[#5B8CFF]">
@@ -53,7 +60,7 @@ const Slide: React.FC<{
           </div>
           <div className="space-y-1">
             <div className="text-sm font-semibold text-white">
-              {isShopify ? 'Shopify' : 'Ads Manager'} screenshot {index + 1}
+              {hasError ? 'Screenshot unavailable' : `${isShopify ? 'Shopify' : 'Ads Manager'} screenshot ${index + 1}`}
             </div>
             <div className="text-[11px] text-[#AAB2C8]">
               Add your image as{' '}
@@ -67,9 +74,10 @@ const Slide: React.FC<{
           </div>
         </div>
       )}
+      </div>
 
       {/* Overlay controls */}
-      <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-3 pointer-events-none">
+      <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#0A1024] px-3 py-2 sm:px-5">
         <span
           className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest backdrop-blur ${
             isShopify
@@ -84,10 +92,10 @@ const Slide: React.FC<{
           <span className="px-2 py-0.5 rounded-md bg-black/55 backdrop-blur text-[9.5px] font-mono text-white/85 border border-white/10">
             {index + 1} / {total}
           </span>
-          {slide.src && (
+          {slide.src && !hasError && (
             <button
               onClick={onExpand}
-              className="p-1.5 rounded-md bg-black/55 backdrop-blur border border-white/15 text-[#AAB2C8] hover:text-white hover:bg-[#4F7CFF] transition-all cursor-pointer"
+              className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 text-[#AAB2C8] hover:text-white hover:bg-[#4F7CFF] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8FB2FF]"
               aria-label="Expand screenshot"
             >
               <Maximize2 className="w-3.5 h-3.5" />
@@ -105,6 +113,7 @@ export const PerformanceProofSection: React.FC<PerformanceProofSectionProps> = (
   const [activeTab, setActiveTab] = useState<'ad-manager' | 'shopify'>('ad-manager');
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [isInteracting, setIsInteracting] = useState(false);
   const [lightbox, setLightbox] = useState(false);
 
   const slides: ShotSlide[] = (activeTab === 'shopify' ? SHOPIFY_SLIDES : AD_ACCOUNT_SLIDES).filter((s) => s.src);
@@ -119,12 +128,12 @@ export const PerformanceProofSection: React.FC<PerformanceProofSectionProps> = (
 
   // Auto-advance every 5 seconds (only when there is more than one slide)
   useEffect(() => {
-    if (!isActive || paused || lightbox || total <= 1) return;
+    if (!isActive || paused || isInteracting || lightbox || total <= 1) return;
     const id = window.setInterval(() => {
       setIndex((prev) => (prev + 1) % total);
     }, AUTOPLAY_MS);
     return () => window.clearInterval(id);
-  }, [isActive, paused, lightbox, total]);
+  }, [isActive, paused, isInteracting, lightbox, total]);
 
   // Keyboard control inside the lightbox
   useEffect(() => {
@@ -164,16 +173,17 @@ export const PerformanceProofSection: React.FC<PerformanceProofSectionProps> = (
 
           <p className="text-[#AAB2C8] text-xs sm:text-sm leading-relaxed">
             Backend screenshots straight out of live Ad Accounts and Shopify stores — every rupee of spend matched to every rupee of store
-            revenue. Five slides per tab, rotating every 5 seconds.
+            revenue. Explore the screenshots from each platform, with automatic slides every 5 seconds.
           </p>
         </div>
 
         {/* Tabs */}
         <div className="flex items-center justify-center">
-          <div className="inline-flex p-1 rounded-full bg-white/5 border border-white/10">
+          <div className="inline-flex max-w-full p-1 rounded-2xl bg-white/5 border border-white/10">
             <button
               onClick={() => setActiveTab('ad-manager')}
-              className={`px-4 sm:px-5 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
+              aria-pressed={activeTab === 'ad-manager'}
+              className={`min-h-11 px-3 sm:px-5 py-2 rounded-xl text-[10px] sm:text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8FB2FF] ${
                 activeTab === 'ad-manager' ? 'bg-[#4F7CFF] text-white shadow-md shadow-blue-600/30' : 'text-[#AAB2C8] hover:text-white'
               }`}
             >
@@ -182,7 +192,8 @@ export const PerformanceProofSection: React.FC<PerformanceProofSectionProps> = (
             </button>
             <button
               onClick={() => setActiveTab('shopify')}
-              className={`px-4 sm:px-5 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
+              aria-pressed={activeTab === 'shopify'}
+              className={`min-h-11 px-3 sm:px-5 py-2 rounded-xl text-[10px] sm:text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8FB2FF] ${
                 activeTab === 'shopify' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' : 'text-[#AAB2C8] hover:text-white'
               }`}
             >
@@ -194,9 +205,15 @@ export const PerformanceProofSection: React.FC<PerformanceProofSectionProps> = (
 
         {/* Slider */}
         <div
-          className="p-3 sm:p-4 rounded-3xl bg-[#0A1024] border border-white/10 shadow-2xl"
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
+          role="region"
+          aria-label={`${activeTab === 'shopify' ? 'Shopify' : 'Ads Manager'} screenshot carousel`}
+          className="mx-auto w-full max-w-6xl min-w-0 p-2 sm:p-4 rounded-3xl bg-gradient-to-br from-[#101B38] to-[#0A1024] border border-[#4F7CFF]/20 shadow-2xl"
+          onMouseEnter={() => setIsInteracting(true)}
+          onMouseLeave={() => setIsInteracting(false)}
+          onFocusCapture={() => setIsInteracting(true)}
+          onBlurCapture={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setIsInteracting(false);
+          }}
         >
           {total === 0 ? (
             <div className="py-14 px-6 text-center space-y-2">
@@ -228,7 +245,7 @@ export const PerformanceProofSection: React.FC<PerformanceProofSectionProps> = (
           <div className="flex items-center justify-between gap-3 pt-3 px-1">
             <button
               onClick={() => go(-1)}
-              className="p-2 rounded-full bg-white/5 border border-white/10 text-[#AAB2C8] hover:text-white hover:border-[#4F7CFF]/50 transition-all cursor-pointer shrink-0"
+              className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-[#AAB2C8] hover:text-white hover:border-[#4F7CFF]/50 transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8FB2FF]"
               aria-label="Previous screenshot"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -240,28 +257,25 @@ export const PerformanceProofSection: React.FC<PerformanceProofSectionProps> = (
                   key={`${s.fileName}-${i}`}
                   onClick={() => setIndex(i)}
                   aria-label={`Go to screenshot ${i + 1}${s.src ? '' : ' (not uploaded yet)'}`}
-                  className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                    i === index
-                      ? 'w-6 bg-[#4F7CFF]'
-                      : s.src
-                      ? 'w-1.5 bg-white/35 hover:bg-white/60'
-                      : 'w-1.5 bg-white/15 hover:bg-white/30'
-                  }`}
-                />
+                  aria-current={i === index ? 'true' : undefined}
+                  className="flex h-11 w-7 items-center justify-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8FB2FF]"
+                >
+                  <span className={`h-1.5 rounded-full transition-all ${i === index ? 'w-6 bg-[#4F7CFF]' : 'w-1.5 bg-white/35'}`} />
+                </button>
               ))}
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => setPaused((p) => !p)}
-                className="p-2 rounded-full bg-white/5 border border-white/10 text-[#AAB2C8] hover:text-white hover:border-[#4F7CFF]/50 transition-all cursor-pointer"
+                className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-[#AAB2C8] hover:text-white hover:border-[#4F7CFF]/50 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8FB2FF]"
                 aria-label={paused ? 'Play slideshow' : 'Pause slideshow'}
               >
                 {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
               </button>
               <button
                 onClick={() => go(1)}
-                className="p-2 rounded-full bg-white/5 border border-white/10 text-[#AAB2C8] hover:text-white hover:border-[#4F7CFF]/50 transition-all cursor-pointer"
+                className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-[#AAB2C8] hover:text-white hover:border-[#4F7CFF]/50 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8FB2FF]"
                 aria-label="Next screenshot"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -272,9 +286,9 @@ export const PerformanceProofSection: React.FC<PerformanceProofSectionProps> = (
           {/* 5-second progress bar */}
           <div className="mt-3 h-0.5 w-full rounded-full bg-white/5 overflow-hidden">
             <div
-              key={`${activeTab}-${index}-${paused}`}
+              key={`${activeTab}-${index}`}
               className="h-full bg-gradient-to-r from-[#4F7CFF] to-[#8B5CF6]"
-              style={{ animation: paused ? 'none' : `wingsSlideProgress ${AUTOPLAY_MS}ms linear forwards` }}
+              style={{ animation: `wingsSlideProgress ${AUTOPLAY_MS}ms linear infinite`, animationPlayState: paused || isInteracting || lightbox || !isActive || total <= 1 ? 'paused' : 'running' }}
             />
           </div>
             </>
