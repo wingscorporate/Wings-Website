@@ -6,7 +6,12 @@
   "scripts": {
     "dev": "tsx server.ts",
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "build:frontend": "vite build",
     "start": "node dist/server.cjs",
+    "build:careers": "esbuild server/careers-server.ts --bundle --platform=node --format=cjs --packages=external --outfile=dist/careers.cjs",
+    "start:careers": "node dist/careers.cjs",
+    "test:careers": "node --import tsx --test tests/careers.test.ts",
+    "check:careers-config": "node --import tsx scripts/validate-careers-config.ts",
     "preview": "vite preview",
     "clean": "rm -rf dist server.cjs",
     "lint": "tsc --noEmit"

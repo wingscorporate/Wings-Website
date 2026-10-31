@@ -13,6 +13,7 @@ import {
   X,
 } from 'lucide-react';
 import { CareerPosition } from '../types';
+import { careersEndpoint, confirmedCareerResponse } from '../lib/careers-api';
 
 interface CareersApplicationModalProps {
   isOpen: boolean;
@@ -36,6 +37,15 @@ const initialForm: FormState = {
 const stepNames = ['Personal Details', 'Professional Experience', 'Role Questions', 'Resume & Submit'];
 const inputClass = 'w-full min-h-12 rounded-xl border border-[#2B3958] bg-[#101A30] px-4 py-3 text-sm text-[#F1F5FF] outline-none transition-colors placeholder:text-[#8290AD] hover:border-[#465A80] focus:border-[#7EA1FF] focus:ring-2 focus:ring-[#4F7CFF]/25 aria-[invalid=true]:border-rose-400';
 
+function resumeBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(',')[1]);
+    reader.onerror = () => reject(new Error('The resume could not be read. Please select it again.'));
+    reader.readAsDataURL(file);
+  });
+}
+
 export const CareersApplicationModal: React.FC<CareersApplicationModalProps> = ({ isOpen, job, onClose }) => {
   const [form, setForm] = useState<FormState>(initialForm);
   const [resume, setResume] = useState<File | null>(null);
@@ -47,7 +57,9 @@ export const CareersApplicationModal: React.FC<CareersApplicationModalProps> = (
   const dialogRef = useRef<HTMLDivElement>(null);
   const formScrollRef = useRef<HTMLDivElement>(null);
   const previousJobId = useRef<string | null>(null);
-  const careersApiUrl = (import.meta.env.VITE_CAREERS_API_URL as string | undefined)?.trim() || '';
+  const submissionInFlight = useRef(false);
+  const applicationId = useRef<string | null>(null);
+  const careersApiUrl = careersEndpoint(import.meta.env.VITE_CAREERS_API_URL, import.meta.env.BASE_URL === '/');
 
   const isWeb = job?.title === 'Web Developer';
   const isPerformance = job?.title === 'Performance Marketer';
@@ -60,6 +72,7 @@ export const CareersApplicationModal: React.FC<CareersApplicationModalProps> = (
     document.body.style.overflow = 'hidden';
     const focusTimer = window.setTimeout(() => closeButtonRef.current?.focus(), 0);
     if (job?.id !== previousJobId.current) {
+      applicationId.current = null;
       setStep(0);
       setErrors({});
       setSubmitState('idle');
@@ -174,28 +187,42 @@ export const CareersApplicationModal: React.FC<CareersApplicationModalProps> = (
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!validateStep(3) || !job || submitState === 'submitting') return;
+    if (submissionInFlight.current || !job || submitState === 'success') return;
+    // Revalidate the entire application, not only the final step.
+    for (const stage of [0, 1, 2, 3] as Step[]) {
+      if (!validateStep(stage)) {
+        setStep(stage);
+        return;
+      }
+    }
     if (!careersApiUrl) {
       setSubmitState('error');
-      setSubmitError('Applications are not connected yet. Please configure VITE_CAREERS_API_URL with the secure upload endpoint before enabling production submissions.');
+      setSubmitError('Applications are temporarily unavailable. Your details are preserved; please retry later.');
       return;
     }
+    submissionInFlight.current = true;
+    applicationId.current ||= crypto.randomUUID();
+    const submittedId = applicationId.current;
     setSubmitState('submitting');
     setSubmitError('');
     try {
-      const payload = new FormData();
-      payload.append('jobId', job.id);
-      payload.append('jobRole', job.title);
-      payload.append('department', job.department);
-      Object.entries(form).forEach(([key, value]) => payload.append(key, String(value)));
-      if (resume) payload.append('resume', resume);
-      const response = await fetch(careersApiUrl, { method: 'POST', body: payload });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok || result.success !== true) throw new Error(result.message || 'The application could not be submitted.');
-      setSubmitState('success');
+      const payload = {
+        applicationId: submittedId, jobId: job.id, fields: form,
+        resume: { name: resume!.name, type: resume!.type, base64: await resumeBase64(resume!) },
+      };
+      const response = await fetch(careersApiUrl, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload), signal: AbortSignal.timeout(120000),
+      });
+      await confirmedCareerResponse(response, submittedId);
+      if (applicationId.current === submittedId) setSubmitState('success');
     } catch (error) {
-      setSubmitState('error');
-      setSubmitError(error instanceof Error ? error.message : 'The application could not be submitted. Please try again.');
+      if (applicationId.current === submittedId) {
+        setSubmitState('error');
+        setSubmitError(error instanceof Error && error.name !== 'TimeoutError' && error.name !== 'TypeError' ? error.message : 'The connection failed. Your details are preserved. Please retry with the same details.');
+      }
+    } finally {
+      submissionInFlight.current = false;
     }
   };
 
@@ -226,7 +253,7 @@ export const CareersApplicationModal: React.FC<CareersApplicationModalProps> = (
       <div className="w-full max-w-lg rounded-3xl border border-[#4F7CFF]/30 bg-[#0A1024] p-8 text-center shadow-2xl shadow-blue-950/40">
         <CheckCircle2 className="mx-auto h-14 w-14 text-emerald-400" />
         <h2 className="mt-5 text-2xl font-display font-bold text-white">Application Submitted Successfully!</h2>
-        <p className="mt-3 text-sm leading-7 text-[#B8C5DF]">Thank you for applying to WINGS Marketing. Our recruitment team will review your application and contact shortlisted candidates.</p>
+        <p className="mt-3 text-sm leading-7 text-[#B8C5DF]">Your application has been submitted successfully. Our HR team will contact you if your profile is shortlisted.</p>
         <p className="mt-4 text-sm font-semibold text-[#7EA1FF]">{job.title}</p>
         <button type="button" onClick={onClose} className="mt-7 rounded-xl bg-[#4F7CFF] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-[#5B8CFF]">Back to Careers</button>
       </div>
@@ -273,7 +300,7 @@ export const CareersApplicationModal: React.FC<CareersApplicationModalProps> = (
           {step === 0 && <div className="grid gap-5 md:grid-cols-2">{field('fullName', 'Full Name', { required: true })}{field('email', 'Email Address', { type: 'email', required: true })}{field('mobile', 'Mobile Number', { type: 'tel', required: true })}{field('whatsapp', 'WhatsApp Number', { type: 'tel' })}{field('cityState', 'Current City and State', { required: true })}<label className="block space-y-2"><span className="text-xs font-semibold text-[#D9E2F7]">Applying For *</span><input value={job.title} readOnly className={`${inputClass} cursor-not-allowed opacity-70`} /></label></div>}
           {step === 1 && <div className="grid gap-5 md:grid-cols-2">{select('experience', 'Total Work Experience', ['Fresher', '0–1 years', '1–2 years', '2–3 years', '3–5 years', '5+ years'], true)}{select('noticePeriod', 'Notice Period', ['Immediately', '15 Days', '30 Days', '60 Days', '90 Days'], true)}{field('currentTitle', 'Current Job Title')}{field('currentCompany', 'Current Company')}{field('currentCtc', 'Current Annual CTC')}{field('expectedCtc', 'Expected Annual CTC')}{field('qualification', 'Highest Qualification', { required: true })}{textarea('relevantSkills', 'Relevant Skills', true)}{field('portfolioUrl', 'Portfolio / Website URL', { type: 'url' })}{field('linkedinUrl', 'LinkedIn Profile URL', { type: 'url' })}{field('githubUrl', 'GitHub Profile URL', { type: 'url' })}</div>}
           {step === 2 && <div className="grid gap-5 md:grid-cols-2">{roleQuestions.map(([key, label, type]) => type === 'textarea' ? textarea(key, label, true) : field(key, label))}</div>}
-          {step === 3 && <div className="grid gap-5 md:grid-cols-2"> <label className="block space-y-2 md:col-span-2"><span className="text-xs font-semibold text-[#D9E2F7]">Resume Upload *</span><div className="rounded-2xl border border-dashed border-[#4F7CFF]/50 bg-[#4F7CFF]/5 p-5"><input id="resume" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={handleFileChange} className="block w-full text-xs text-[#A9B8D4] file:mr-4 file:rounded-lg file:border-0 file:bg-[#4F7CFF] file:px-4 file:py-2 file:font-semibold file:text-white" /><p className="mt-2 flex items-center gap-2 text-xs text-[#8B9AC0]"><Upload className="h-3.5 w-3.5" />PDF, DOC, or DOCX up to 5 MB{resume ? ` · ${resume.name}` : ''}</p></div>{errors.resume && <span className="text-xs text-rose-300">{errors.resume}</span>}</label>{textarea('coverLetter', 'Cover Letter / Why Should We Hire You?')}{field('joiningDate', 'Earliest Available Joining Date', { type: 'date' })}{select('heardFrom', 'How Did You Hear About Us?', ['LinkedIn', 'Instagram', 'Website', 'Referral', 'Job Portal', 'Other'])}<label className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4 md:col-span-2"><input type="checkbox" checked={Boolean(form.consent)} onChange={(event) => setValue('consent', event.target.checked)} className="mt-1 h-4 w-4 accent-[#4F7CFF]" /> <span className="text-xs leading-6 text-[#B8C5DF]">I consent to WINGS Marketing processing my application information for recruitment purposes. *</span></label>{errors.consent && <span className="text-xs text-rose-300 md:col-span-2">{errors.consent}</span>} {!careersApiUrl && <div className="flex items-start gap-2 rounded-xl border border-amber-400/20 bg-amber-400/5 p-4 text-xs leading-6 text-amber-100 md:col-span-2"><AlertCircle className="mt-1 h-4 w-4 shrink-0" />Application submission is awaiting secure backend setup. The form will not claim success until VITE_CAREERS_API_URL is configured.</div>}</div>}
+          {step === 3 && <div className="grid gap-5 md:grid-cols-2"> <label className="block space-y-2 md:col-span-2"><span className="text-xs font-semibold text-[#D9E2F7]">Resume Upload *</span><div className="rounded-2xl border border-dashed border-[#4F7CFF]/50 bg-[#4F7CFF]/5 p-5"><input id="resume" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={handleFileChange} className="block w-full text-xs text-[#A9B8D4] file:mr-4 file:rounded-lg file:border-0 file:bg-[#4F7CFF] file:px-4 file:py-2 file:font-semibold file:text-white" /><p className="mt-2 flex items-center gap-2 text-xs text-[#8B9AC0]"><Upload className="h-3.5 w-3.5" />PDF, DOC, or DOCX up to 5 MB{resume ? ` · ${resume.name}` : ''}</p></div>{errors.resume && <span className="text-xs text-rose-300">{errors.resume}</span>}</label>{textarea('coverLetter', 'Cover Letter / Why Should We Hire You?')}{field('joiningDate', 'Earliest Available Joining Date', { type: 'date' })}{select('heardFrom', 'How Did You Hear About Us?', ['LinkedIn', 'Instagram', 'Website', 'Referral', 'Job Portal', 'Other'])}<label className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4 md:col-span-2"><input type="checkbox" checked={Boolean(form.consent)} onChange={(event) => setValue('consent', event.target.checked)} className="mt-1 h-4 w-4 accent-[#4F7CFF]" /> <span className="text-xs leading-6 text-[#B8C5DF]">I consent to WINGS Marketing processing my application information for recruitment purposes. *</span></label>{errors.consent && <span className="text-xs text-rose-300 md:col-span-2">{errors.consent}</span>} {!careersApiUrl && <div className="flex items-start gap-2 rounded-xl border border-amber-400/20 bg-amber-400/5 p-4 text-xs leading-6 text-amber-100 md:col-span-2"><AlertCircle className="mt-1 h-4 w-4 shrink-0" />Applications are temporarily unavailable. Your details will stay in this form so you can retry later.</div>}</div>}
           {submitState === 'error' && submitError && <div className="mt-5 flex items-start gap-2 rounded-xl border border-rose-400/20 bg-rose-400/5 p-4 text-xs leading-6 text-rose-100"><AlertCircle className="mt-1 h-4 w-4 shrink-0" />{submitError}</div>}
         </div>
         <div className="flex shrink-0 items-center justify-between gap-3 border-t border-white/10 bg-[#0A1024]/95 px-5 py-4 sm:px-8"><button type="button" disabled={step === 0 || submitState === 'submitting'} onClick={() => setStep((step - 1) as Step)} className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-4 py-3 text-xs font-bold text-white transition-colors hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40"><ArrowLeft className="h-4 w-4" />Back</button>{step < 3 ? <button type="button" onClick={() => { if (validateStep(step)) setStep((step + 1) as Step); }} className="inline-flex items-center gap-2 rounded-xl bg-[#4F7CFF] px-5 py-3 text-xs font-bold text-white transition-colors hover:bg-[#5B8CFF]">Continue<ArrowRight className="h-4 w-4" /></button> : <button type="submit" disabled={submitState === 'submitting' || !careersApiUrl} className="inline-flex items-center gap-2 rounded-xl bg-[#4F7CFF] px-5 py-3 text-xs font-bold text-white transition-colors hover:bg-[#5B8CFF] disabled:cursor-not-allowed disabled:opacity-50">{submitState === 'submitting' ? <><Loader2 className="h-4 w-4 animate-spin" />Submitting…</> : <>Submit Application<CheckCircle2 className="h-4 w-4" /></>}</button>}</div>

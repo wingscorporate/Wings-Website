@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 import { google } from 'googleapis';
+import { createCareersRouter } from './server/careers';
 
 const PORT = 3000;
 const SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID || '1s9oMgn_zTWryP0n34z-FMKHg-dktQR6Nm-ZSO97AMVY';
@@ -191,6 +192,8 @@ async function appendToGoogleSheet(values: (string | number)[][]) {
 
 async function startServer() {
   const app = express();
+  // Careers has its own bounded resume parser and never writes to the public leads file.
+  app.use('/api/careers/applications', createCareersRouter());
   app.use(express.json({ limit: '50kb' }));
 
   // API Route: Book Your Free Strategy Call Submission

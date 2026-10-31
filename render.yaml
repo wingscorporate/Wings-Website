@@ -1,0 +1,24 @@
+# Uses the existing careers-server entry point. Configure an existing service with
+# these same settings rather than creating a second service for the same API.
+services:
+  - type: web
+    name: wings-careers-api
+    runtime: node
+    plan: free
+    branch: main
+    buildCommand: npm ci --include=dev && npm run build:careers
+    startCommand: npm run start:careers
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: CAREERS_APPS_SCRIPT_URL
+        sync: false
+      - key: CAREERS_APPS_SCRIPT_SECRET
+        sync: false
+      - key: CAREERS_ALLOWED_ORIGINS
+        value: https://wingscorporate.github.io
+      - key: CAREERS_TRUST_PROXY_HOPS
+        value: "0"

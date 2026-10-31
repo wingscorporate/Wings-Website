@@ -11,4 +11,5 @@ credentials.json
 *.pem
 *.key
 leads.json
+.careers-test-results.json
 

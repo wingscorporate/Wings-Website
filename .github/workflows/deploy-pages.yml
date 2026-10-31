@@ -30,10 +30,17 @@ jobs:
         run: npm ci
       - name: Check types
         run: npm run lint
+      - name: Test careers API with simulated Google services
+        run: npm run test:careers
+      - name: Verify public careers endpoint configuration
+        run: npm run check:careers-config
+        env:
+          VITE_CAREERS_API_URL: ${{ vars.VITE_CAREERS_API_URL }}
       - name: Build static site
-        run: npm run build
+        run: npm run build:frontend
         env:
           GITHUB_ACTIONS: 'true'
+          VITE_CAREERS_API_URL: ${{ vars.VITE_CAREERS_API_URL }}
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site artifact
